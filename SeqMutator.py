@@ -16,17 +16,17 @@ class SeqMutator:
         self.nuc_type = nuc_type
 
         #self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
-        self.change_chain_name("B") # STEP 2: change the chain name on the files so that they don't conflict when added to the full PDB
+        self.change_chain_name("D") # STEP 2: change the chain name on the files so that they don't conflict when added to the full PDB
 
     def read_in_seqs(self):
         os.chdir(self.base_dir)
-        base_pdb = "DNAonly.pdb"
+        base_pdb = "compDNAonly.pdb"
         f = open(self.seq_list)
         for line in f:
             # use the line concatenator to set you sequence to the subseq you need for your base PDB
             s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
             if self.nuc_type == "DNA":
-                seq = self.revcom(s[1][4:-6])
+                seq = self.revcom(s[1][-9:-6]) + 'TGGTATTG'
             else:
                 seq = s[1]
             print(seq)
@@ -56,7 +56,6 @@ class SeqMutator:
                 # Move new file
                 move(abs_path, p_file)
 
-
     def revcom(self, sequence, complement=False):
         retseq = ""
         change = {'A': 'T',
@@ -73,6 +72,6 @@ class SeqMutator:
 
 
 SeqMutator(nuc_type="DNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/dna_seqs.txt",
-           oupt="RNA_MUT_SOLO/",
-           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4OO8ABC/")
+           oupt="COMP_DNA_MUT_SOLO/",
+           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/")
 

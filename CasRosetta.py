@@ -7,7 +7,7 @@ from RosettaSub import RosettaSubprocess
 class RosettaBatch:
 
     def __init__(self):
-        self.base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/4OO8ABC/"
+        self.base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/"
         self.output_dir = "FULL_MUT_PDBs/"
 
         self.base_file_string = str()
@@ -20,6 +20,7 @@ class RosettaBatch:
         base_pdb = "PROTonly.pdb"
         rna_dir = "RNA_MUT_SOLO/"
         dna_dir = "DNA_MUT_SOLO/"
+        comp_dna_dir = "COMP_DNA_MUT_SOLO/"
 
         # Create the base_file_string:
         bf = open(base_pdb)
@@ -51,6 +52,11 @@ class RosettaBatch:
                 for line in ocf:
                     self.dna_file_string += line
                 ocf.close()
+                # Appends for double stranded DNA:
+                compf = open(self.base_dir + comp_dna_dir + dna_file)
+                for line in compf:
+                    self.dna_file_string += line
+                compf.close()
                 # Creates the new PDB in the FULL_MUT_PDBs directory
                 nf = open(self.base_dir + self.output_dir + "ON_" + seq_id + ".pdb", "w")
                 nf.write(self.base_file_string + self.rna_file_string + self.dna_file_string + end_line)
@@ -68,4 +74,5 @@ class RosettaBatch:
 
 # Code Execution
 rc = RosettaBatch()
+#rc.stitching()
 rc.run_pdbs_in_directory("ON_")
