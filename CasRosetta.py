@@ -7,8 +7,8 @@ from RosettaSub import RosettaSubprocess
 class RosettaBatch:
 
     def __init__(self):
-        self.base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/"
-        self.output_dir = "FULL_MUT_PDBs/"
+        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR/4UN3/"
+        self.output_dir = "FULL_MUT/"
 
         self.base_file_string = str()
 
@@ -17,10 +17,16 @@ class RosettaBatch:
 
     def stitching(self, off=False, dna_id="none", rna_id="none"):
         os.chdir(self.base_dir)
-        base_pdb = "PROTonly.pdb"
-        rna_dir = "RNA_MUT_SOLO/"
-        dna_dir = "DNA_MUT_SOLO/"
-        comp_dna_dir = "COMP_DNA_MUT_SOLO/"
+        header = 'het_header.pdb'
+        base_pdb = "PROT_chainB.pdb"
+        rna_dir = "RNA_MUT/"
+        dna_dir = "DNA_MUT/"
+        comp_dna_dir = "CDNA_MUT/"
+
+        # Start the header:
+        hf = open(header)
+        for line in hf:
+            self.base_file_string += line
 
         # Create the base_file_string:
         bf = open(base_pdb)
@@ -30,6 +36,7 @@ class RosettaBatch:
                 end_line = line
             else:
                 self.base_file_string += line
+        bf.close()
 
         if off:
             dna_file = "d_" + dna_id + ".pdb"
@@ -74,5 +81,5 @@ class RosettaBatch:
 
 # Code Execution
 rc = RosettaBatch()
-#rc.stitching()
-rc.run_pdbs_in_directory("ON_")
+rc.stitching()
+#rc.run_pdbs_in_directory("ON_")

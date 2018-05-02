@@ -3,40 +3,43 @@
 from tempfile import mkstemp
 from shutil import move
 import os
-from RosettaSub import RosettaSubprocess
+from RosettaSub import RosettaSingleProcess
 
 
 class SeqMutator:
 
-    def __init__(self, nuc_type, inpt, oupt, base):
+    def __init__(self, base_pdb, inpt, base):
         self.seq_list = inpt
-        self.output_directory = oupt
         self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
         self.new_seqs = list()
-        self.nuc_type = nuc_type
+        self.nuc_type = base_pdb[0:3]
+        self.base_pdb = base_pdb
+        self.output_directory = self.nuc_type + "_MUT/"
 
-        #self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
-        self.change_chain_name("D") # STEP 2: change the chain name on the files so that they don't conflict when added to the full PDB
+        self.run_pool = list()
+
+        self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
+        self.change_chain_name()
 
     def read_in_seqs(self):
         os.chdir(self.base_dir)
-        base_pdb = "compDNAonly.pdb"
         f = open(self.seq_list)
         for line in f:
             # use the line concatenator to set you sequence to the subseq you need for your base PDB
             s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
             if self.nuc_type == "DNA":
-                seq = self.revcom(s[1][-9:-6]) + 'TGGTATTG'
+                seq = 'CA' + self.revcom(s[1][4:])
             else:
                 seq = s[1]
             print(seq)
-            rr = RosettaSubprocess("rna_thread.default.macosclangrelease")
-            rr.set_inputs(["-s", base_pdb, "-seq", seq.lower(), "-o", self.output_directory + s[0] + ".pdb"])
+            rr = RosettaSingleProcess("rna_thread.default.linuxgccrelease")
+            rr.set_inputs(["-s", self.base_pdb, "-seq", seq.lower(), "-o", self.output_directory + s[0] + ".pdb"])
             rr.run_process()
         f.close()
 
     # Changes the chain name to be consistent with the new PDB file:
-    def change_chain_name(self, new_chain_char):
+    def change_chain_name(self):
+        new_chain_char = self.base_pdb[-5]
         os.chdir(self.base_dir + self.output_directory)
         for p_file in os.listdir(os.curdir):
             # Create temp file
@@ -71,7 +74,6 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(nuc_type="DNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/dna_seqs.txt",
-           oupt="COMP_DNA_MUT_SOLO/",
-           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/")
+SeqMutator(base_pdb="DNA_chainC.pdb", inpt="/home/trinhlab/Documents/RosettaCRISPR/4UN3/dna_seqs.txt",
+           base="/home/trinhlab/Documents/RosettaCRISPR/4UN3/")
 
