@@ -53,7 +53,7 @@ class RosettaSingleProcess:
     def run_process(self):
         total_bin_dir = self.rosetta_directory + self.program
         args_array = [total_bin_dir] + self.inputs
-        subprocess.run(args_array)
+        subprocess.run(args_array)  # use run for single processor machines, Popen and a pool for multi
 
     def set_inputs(self,in_put):
         self.inputs = in_put
