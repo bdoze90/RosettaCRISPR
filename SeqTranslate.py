@@ -70,7 +70,8 @@ class SeqTranslate:
         for i in range(len(base64seq)):
             power = len(base64seq) - (i+1)
             index = self.base_array_64.find(base64seq[i])
-            base10seq += index*pow(64, power)
+            if index != -1:
+                base10seq += index*pow(64, power)
         if toseq:
             seq = str()
             number = base10seq
@@ -90,22 +91,22 @@ class SeqTranslate:
         scr = self.decompress64(mytuple[2])
         split = seq.find("+")
         if split != -1:
-            seed = seq[:split]
-            tail = seq[split+1:]
+            dira = True
+            sequence = seq[:split]
+            pam = seq[split+1:]
         else:
             seq = seq.split("-")
-            seed = seq[0]
-            tail = seq[1]
-        seed = self.decompress64(seed, True)
-        tail = self.decompress64(tail, True)
+            sequence = seq[0]
+            pam = seq[1]
+            dira = False
+        sequence = self.decompress64(sequence, True)
+        pam = self.decompress64(pam, True)
         # The for loops fixes the problem of A's not being added to the end because they are removed on compression
-        for i in range(len(seed),16):
-            seed += 'A'
-        for j in range(len(tail),4):
-            tail += 'A'
-        myseq = tail + seed
-        #return loc, myseq, scr
-        return str(loc) + "," + myseq + "," + str(scr)[0:2]
+        for i in range(len(sequence),20):
+            sequence += 'A'
+        for j in range(len(pam),3):
+            pam += 'A'
+        return int(loc), sequence, pam, int(scr), dira
         #print("Location: " + str(myloc))
         #print("Sequence: " + myseq)
 
@@ -116,7 +117,7 @@ class SeqTranslate:
         return newseq
 
 
-#S = SeqTranslate()
-#S.decompress_csf_tuple("RgK,BACMo0-w")
-#print(S.decompress64("BALKN",True))
+S = SeqTranslate()
+#print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
+print(S.decompress64("HvJt",False))
 
