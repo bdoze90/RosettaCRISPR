@@ -2,6 +2,9 @@
 
 from SeqTranslate import SeqTranslate
 from operator import itemgetter
+import os,sys
+import multiprocessing
+import concurrent.futures
 
 grna_temp_storage = list()
 # main storage vehicle
@@ -29,7 +32,7 @@ def parse_gbff(file_path):
     f.close()
     # sort by the end location (for parsing index)
     for C_S in ScaffGeneDict:
-        ScaffGeneDict[C_S] = sorted(ScaffGeneDict[C_S], key=itemgetter(2))
+        ScaffGeneDict[C_S] = sorted(ScaffGeneDict[C_S], key=itemgetter(1))
 
 
 def sort_grnas_by_genes(cspr_file):
@@ -38,28 +41,45 @@ def sort_grnas_by_genes(cspr_file):
     for line in f:
         if line.startswith(">"):
             if grna_temp_storage:
-                assign_to_genes(cur_cs)
+                if cur_cs in ScaffGeneDict:
+                    assign_to_genes(cur_cs)
                 grna_temp_storage.clear()
-            cur_cs = line[1:-5]
+            cur_cs = line[1:line.find("(")-1]
             print("running " + cur_cs)
+        elif line.startswith("REPEAT"):
+            if cur_cs in ScaffGeneDict:
+                assign_to_genes(cur_cs)
+            grna_temp_storage.clear()
+            break
         else:
             grna_temp_storage.append(S.decompress_csf_tuple(line[:-1]))
     f.close()
 
 
 def assign_to_genes(cs_index):
+    print("Number of genes in scaffold:")
+    total = len(ScaffGeneDict[cs_index])
+    print(total)
+    index_start = -1
+    progressindex = 0
+    grna_index = 0
     for gene in ScaffGeneDict[cs_index]:
-        grna_index = 0
         while grna_temp_storage[grna_index][0] < gene[2]:
             g_tup = grna_temp_storage[grna_index]
             if gene[1] < g_tup[0]:
-                for item in g_tup:
-                    gene.append(item)
-                    gene.append(is_istop(g_tup, gene[1]))
+                index_start = grna_index
+                item = list(g_tup) + [is_istop(g_tup,gene[1])]
+                gene.append(item)
             if grna_index < len(grna_temp_storage)-1:
                 grna_index += 1
             else:
+                if index_start > 0:
+                    grna_index = index_start
                 break
+        progressindex += 1
+        progressBar(progressindex,total)
+    generate_report(cs=cs_index)
+    ScaffGeneDict[cs_index].clear()
 
 
 def is_istop(grna,atg_pos):
@@ -81,30 +101,41 @@ def is_istop(grna,atg_pos):
         return "NO"
 
 
-def generate_report():
-    f = open("kfd_concise_data.csv", "w")
-    for cs in ScaffGeneDict:
-        f.write("SCAFFOLD: " + cs + "\n")
-        for gene in ScaffGeneDict[cs]:
-            f.write("GENE " + gene[0] + "," + str(gene[1]) + "," + str(gene[2]) + "," + gene[3] + "\n")
-            for grna in gene[4:]:
-                for item in grna:
-                    f.write(item + ",")
-                f.write("\n")
+def generate_report(cs):
+    filename = "kfd_concise_data.csv"
+    if os.path.exists(filename):
+        ap_stat = 'a'
+    else:
+        ap_stat = 'w'
+    f = open(filename, ap_stat)
+    f.write("SCAFFOLD: " + cs + "\n")
+    for gene in ScaffGeneDict[cs]:
+        f.write("GENE: " + gene[0] + "," + str(gene[1]) + "," + str(gene[2]) + "," + gene[3] + "\n")
+        for grna in gene[4:]:
+            for i in range(len(grna)):
+                if i != 4:
+                    f.write(str(grna[i]) + ",")
+            if grna[4]:
+                f.write("+")
+            else:
+                f.write("-")
+            f.write("\n")
+    print(" completed " + cs)
     f.close()
 
 
+def progressBar(value, endvalue, bar_length=30):
+    percent = float(value)/endvalue
+    arrow = '-' * int(round(percent * bar_length)-1) + '>'
+    spaces = ' ' * (bar_length - len(arrow))
+    sys.stdout.write("\rPercent: [{0}] {1}%".format(arrow+spaces,int(round(percent*100))))
+    sys.stdout.flush()
 
 
+parse_gbff("/Users/brianmendoza/Dropbox/JGI_CASPER/Kfedtschenkoi_382_v1.1.gene_exons.gff3")
 
+sort_grnas_by_genes("/Users/brianmendoza/Dropbox/JGI_CASPER/kfdspCas9.cspr")
 
-
-
-parse_gbff("/Users/brianmendoza/Desktop/Kfedtschenkoi_382_v1.1.gene_exons.gff3")
-
-sort_grnas_by_genes("/Users/brianmendoza/Desktop/kfdspCas9.cspr")
-
-generate_report()
 
 
 

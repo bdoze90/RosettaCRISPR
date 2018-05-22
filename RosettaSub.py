@@ -46,7 +46,7 @@ class RosettaSubprocess:
 class RosettaSingleProcess:
 
     def __init__(self, program):
-        self.rosetta_directory = "/home/trinhlab/Documents/rosetta_bin_linux_2018.12.60119_bundle/main/source/bin/"
+        self.rosetta_directory = "/Users/brianmendoza/rosetta_bin_mac_2018.12.60119_bundle/main/source/bin/"
         self.program = program
         self.inputs = list()
 

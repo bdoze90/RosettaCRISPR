@@ -3,7 +3,7 @@
 from tempfile import mkstemp
 from shutil import move
 import os
-from RosettaSub import RosettaSubprocess
+from RosettaSub import RosettaSingleProcess
 
 
 class SeqMutator:
@@ -14,7 +14,7 @@ class SeqMutator:
         self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
         self.new_seqs = list()
         self.nuc_type = nuc_type
-        self.base_pdb = "CDNA_chainD.pdb"
+        self.base_pdb = "4UN4_ChainA.pdb"
 
         self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
         self.change_chain_name()
@@ -31,9 +31,9 @@ class SeqMutator:
             elif self.nuc_type == "CDNA":
                 seq = s[1][-9:-6] + "TGGTATTG"
             else:
-                seq = s[1]
+                seq = s[1][0:81]
             print(seq)
-            rr = RosettaSubprocess("rna_thread.default.macosclangrelease")
+            rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
             rr.set_inputs(["-s", base_pdb, "-seq", seq.lower(), "-o", self.output_directory + s[0] + ".pdb"])
             rr.run_process()
         f.close()
@@ -75,7 +75,7 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(nuc_type="CDNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/dna_seqs.txt",
-           oupt="CDNA_MUT/",
-           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/")
+SeqMutator(nuc_type="RNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/rna_seqs.txt",
+           oupt="RNA_MUT/",
+           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN4/")
 
