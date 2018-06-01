@@ -14,7 +14,7 @@ class SeqMutator:
         self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
         self.new_seqs = list()
         self.nuc_type = nuc_type
-        self.base_pdb = "4UN4_ChainA.pdb"
+        self.base_pdb = "4UN5_ChainC.pdb"
 
         self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
         self.change_chain_name()
@@ -74,8 +74,25 @@ class SeqMutator:
                 retseq = rnt + retseq
         return retseq
 
+    def chain_info(self, struct, chain):
+        cs_dict = {"4UN3": {"ChainA" : 81,
+                            "ChainB" : 18,
+                            "ChainC" : 5}
+                   "4UN4": {"ChainA" : 81,
+                            "ChainB" : 34,
+                            "ChainC" : 32,
+                            "ChainD" : 21,
+                            "ChainE" : 32}
+                   "4UN5": {"ChainA" : 81,
+                            "ChainB" : 122,
+                            "ChainC" : 21,
+                            "ChainD" : 21,
+                            "ChainE" : 21}
+                   "5FQ5": {"ChainA" :}}
+        return cs_dict[struct][chain]  # returns the tuple of the coordinates for the chain
+
 
 SeqMutator(nuc_type="RNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/rna_seqs.txt",
            oupt="RNA_MUT/",
-           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN4/")
+           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN5/")
 
