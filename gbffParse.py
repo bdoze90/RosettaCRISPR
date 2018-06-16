@@ -56,6 +56,7 @@ def sort_grnas_by_genes(cspr_file):
     f.close()
 
 
+# Function places the guideRNA sequences into a gene locus if its PAM location is within the exon start and end.
 def assign_to_genes(cs_index):
     print("Number of genes in scaffold:")
     total = len(ScaffGeneDict[cs_index])
@@ -64,13 +65,13 @@ def assign_to_genes(cs_index):
     progressindex = 0
     grna_index = 0
     for gene in ScaffGeneDict[cs_index]:
-        while grna_temp_storage[grna_index][0] < gene[2]:
+        while grna_temp_storage[grna_index][0] < (gene[2]+20):  # PAM site is before end of gene (+20 for intron PAMs)
             g_tup = grna_temp_storage[grna_index]
-            if gene[1] < g_tup[0]:
+            if gene[1] < (g_tup[0]-20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
                 index_start = grna_index
                 item = list(g_tup) + [is_istop(g_tup,gene[1])]
                 gene.append(item)
-            if grna_index < len(grna_temp_storage)-1:
+            if grna_index < len(grna_temp_storage)-1:  # Still in the right scaffold
                 grna_index += 1
             else:
                 if index_start > 0:
