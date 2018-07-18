@@ -77,18 +77,28 @@ class SeqMutator:
     def chain_info(self, struct, chain):
         cs_dict = {"4UN3": {"ChainA" : 81,
                             "ChainB" : 18,
-                            "ChainC" : 5}
+                            "ChainC" : 5},
                    "4UN4": {"ChainA" : 81,
                             "ChainB" : 34,
                             "ChainC" : 32,
                             "ChainD" : 21,
-                            "ChainE" : 32}
+                            "ChainE" : 32},
                    "4UN5": {"ChainA" : 81,
                             "ChainB" : 122,
                             "ChainC" : 21,
                             "ChainD" : 21,
-                            "ChainE" : 21}
-                   "5FQ5": {"ChainA" :}}
+                            "ChainE" : 21},
+                   "5FQ5": {"ChainA" : 82,
+                            "ChainB" : 1360,
+                            "ChainC" : 9,
+                            "ChainD" : 9,
+                            "ChainE" : 16},
+                   "4OO8ABC": {"ChainA" : 97,
+                               "ChainB" : 1363,
+                               "ChainC" : 20},
+                   "4OO8DEF": {"ChainD" : 1363,
+                               "ChainE" : 97,
+                               "ChainF" : 22}}
         return cs_dict[struct][chain]  # returns the tuple of the coordinates for the chain
 
 
