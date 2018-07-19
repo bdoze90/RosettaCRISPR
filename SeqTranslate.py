@@ -117,7 +117,7 @@ class SeqTranslate:
         return newseq
 
 
-#S = SeqTranslate()
+S = SeqTranslate()
 #print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
-#print(S.decompress64("NxlK",False))
+print(S.decompress64("9v",True))
 

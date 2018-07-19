@@ -8,40 +8,67 @@ from RosettaSub import RosettaSingleProcess
 
 class SeqMutator:
 
-    def __init__(self, nuc_type, inpt, oupt, base):
-        self.seq_list = inpt
-        self.output_directory = oupt
+    def __init__(self, base):
+        self.seq_lists = ["rna_seqs_copy.txt", "dna_seqs_copy.txt"]
         self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
         self.new_seqs = list()
-        self.nuc_type = nuc_type
-        self.base_pdb = "4UN5_ChainC.pdb"
 
-        self.read_in_seqs()  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
-        self.change_chain_name()
+        self.cs_dict = {"4UN3/ChainA": (0, 81, '', ''),
+                        "4UN3/ChainC": (5, 'n', '',''),
+                        "4UN3/ChainD": (17, 'n', '','TGGTATTG'),
+                        "4UN4/ChainA": (0, 81, '',''),
+                        "4UN4/ChainC": (0, 12, 'rc',''),
+                        "4UN4/ChainD": (18, 'n', '','TGGATTG'),
+                        "4UN4/ChainE": (13, 'n', '',''),
+                        "4UN5/ChainA": (0, 81, '',''),
+                        "4UN5/ChainC": (0, 12, 'rc',''),
+                        "4UN5/ChainD": (18, 'n', '','TGGATTG'),
+                        "4UN5/ChainE": (13, 'n', 'rc',''),
+                        "5FQ5/ChainA": (0, 81, '',''),
+                        "5FQ5/ChainC": (0, 12, 'rc',''),
+                        "5FQ5/ChainD": (18, 'n', '','TGGATTG'),
+                        "5FQ5/ChainE": (13, 'n', 'rc',''),
+                        "4OO8ABC/ChainB": (0, 'n', '',''),
+                        "4OO8ABC/ChainC": (0, 'n', 'rc','')
+                        }
 
-    def read_in_seqs(self):
-        os.chdir(self.base_dir)
-        base_pdb = self.base_pdb
-        f = open(self.seq_list)
-        for line in f:
-            # use the line concatenator to set you sequence to the subseq you need for your base PDB
-            s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
-            if self.nuc_type == "DNA":
-                seq = self.revcom(s[1][5:-1])
-            elif self.nuc_type == "CDNA":
-                seq = s[1][-9:-6] + "TGGTATTG"
-            else:
-                seq = s[1][0:81]
-            print(seq)
-            rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
-            rr.set_inputs(["-s", base_pdb, "-seq", seq.lower(), "-o", self.output_directory + s[0] + ".pdb"])
-            rr.run_process()
-        f.close()
+        for chain in self.cs_dict:
+            self.read_in_seqs(chain)  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
+            self.change_chain_name()
+
+    def read_in_seqs(self, chain_name):
+        base_pdb = self.base_dir + chain_name + ".pdb"
+        output_directory = self.base_dir + chain_name[-6:] + "_MUT" + "/"
+        for seq_file in self.seq_lists:
+            f = open(self.base_dir + seq_file)
+            for line in f:
+                s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
+                ix = self.cs_dict[chain_name]
+                # check for addendum:
+                qs = s[1] + ix[3]
+                # check if the 'n' exists then just use the first index:
+                if ix[1] == 'n':
+                    seq = qs[ix[0]:]
+                    # check for revcomness:
+                    if ix[2] == 'rc':
+                        seq = self.revcom(seq)
+                else:
+                    seq = qs[ix[0]:ix[1]]  # grabs second index and the length of the sequence for the structure
+                    if ix[2] == 'rc':
+                        seq = self.revcom(seq)
+                print(seq)
+                rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
+                rr.set_inputs(
+                    ["-s", base_pdb, "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
+                rr.run_process()
+            f.close()
+        self.change_chain_name(output_directory)
+
 
     # Changes the chain name to be consistent with the new PDB file:
-    def change_chain_name(self):
-        new_chain_char = self.base_pdb[-5]
-        os.chdir(self.base_dir + self.output_directory)
+    def change_chain_name(self, out_dir):
+        new_chain_char = out_dir[-2]
+        os.chdir(out_dir)
         for p_file in os.listdir(os.curdir):
             # Create temp file
             if p_file[:2] == "r_" or p_file[:2] == "d_":
@@ -74,35 +101,6 @@ class SeqMutator:
                 retseq = rnt + retseq
         return retseq
 
-    def chain_info(self, struct, chain):
-        cs_dict = {"4UN3": {"ChainA" : 81,
-                            "ChainB" : 18,
-                            "ChainC" : 5},
-                   "4UN4": {"ChainA" : 81,
-                            "ChainB" : 34,
-                            "ChainC" : 32,
-                            "ChainD" : 21,
-                            "ChainE" : 32},
-                   "4UN5": {"ChainA" : 81,
-                            "ChainB" : 122,
-                            "ChainC" : 21,
-                            "ChainD" : 21,
-                            "ChainE" : 21},
-                   "5FQ5": {"ChainA" : 82,
-                            "ChainB" : 1360,
-                            "ChainC" : 9,
-                            "ChainD" : 9,
-                            "ChainE" : 16},
-                   "4OO8ABC": {"ChainA" : 97,
-                               "ChainB" : 1363,
-                               "ChainC" : 20},
-                   "4OO8DEF": {"ChainD" : 1363,
-                               "ChainE" : 97,
-                               "ChainF" : 22}}
-        return cs_dict[struct][chain]  # returns the tuple of the coordinates for the chain
 
-
-SeqMutator(nuc_type="RNA", inpt="/Users/brianmendoza/Desktop/RosettaCRISPR/rna_seqs.txt",
-           oupt="RNA_MUT/",
-           base="/Users/brianmendoza/Desktop/RosettaCRISPR/4UN5/")
+SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPRMAC/")
 
