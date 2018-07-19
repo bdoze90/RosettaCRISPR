@@ -38,7 +38,7 @@ class SeqMutator:
 
     def read_in_seqs(self, chain_name):
         base_pdb = self.base_dir + chain_name + ".pdb"
-        output_directory = self.base_dir + chain_name[-6:] + "_MUT" + "/"
+        output_directory = self.base_dir + chain_name + "_MUT" + "/"
         for seq_file in self.seq_lists:
             f = open(self.base_dir + seq_file)
             for line in f:
@@ -102,5 +102,5 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPRMAC/")
+SeqMutator(base="/Users/brianmendoza/Dropbox/RosettaCRISPRMAC/")
 
