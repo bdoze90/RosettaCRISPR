@@ -9,7 +9,7 @@ from RosettaSub import RosettaSingleProcess
 class SeqMutator:
 
     def __init__(self, base):
-        self.seq_lists = {'r': "rna_seqs_copy.txt", 'd': "dna_seqs_copy.txt"}
+        self.seq_lists = {'r': "rna_seqs.txt", 'd': "dna_seqs.txt"}
         self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
         self.new_seqs = list()
 
@@ -18,18 +18,18 @@ class SeqMutator:
                         "4UN3/ChainD": ('d', 17, 'n', '','TGGTATTG'),
                         "4UN4/ChainA": ('r', 0, 81, '',''),
                         "4UN4/ChainC": ('d', 17, 'n', 'rc','TGGTATTG'),
-                        "4UN4/ChainD": ('d', 17, 'n', '','TGGTATTG'),
-                        "4UN4/ChainE": ('d', 13, 'n', '',''),
+                        "4UN4/ChainD": ('d', 18, 'n', '','TGGTATTG'),
+                        "4UN4/ChainE": ('d', 0, 17, 'rc',''),
                         "4UN5/ChainA": ('r', 0, 81, '',''),
-                        "4UN5/ChainC": ('d', 17, 'n', 'rc','TGGTATTG'),
-                        "4UN5/ChainD": ('d', 17, 'n', '','TGGTATTG'),
+                        "4UN5/ChainC": ('d', 20, 'n', 'rc','TGGTATTG'),
+                        "4UN5/ChainD": ('d', 18, 'n', '','TGGTATTG'),
                         "4UN5/ChainE": ('d', 0, 17, 'rc',''),
                         "5FQ5/ChainA": ('r', 0, 81, '',''),
-                        "5FQ5/ChainC": ('d', 17, 'n', 'rc','TGGTATTG'),
-                        "5FQ5/ChainD": ('d', 17, 'n', '','TGGTATTG'),
+                        "5FQ5/ChainC": ('d', 19, 'n', 'rc','TGGTATTG'),
+                        "5FQ5/ChainD": ('d', 18, 'n', '','TGGTATTG'),
                         "5FQ5/ChainE": ('d', 0, 17, 'rc',''),
                         "4OO8ABC/ChainB": ('r', 0, 'n', '',''),
-                        "4OO8ABC/ChainC": ('r', 0, 'n', 'rc','')
+                        "4OO8ABC/ChainC": ('d', 0, 'n', 'rc','')
                         }
 
         for chain in self.cs_dict:
@@ -93,7 +93,7 @@ class SeqMutator:
                   'G': 'C',
                   'C': 'G'}
         for nt in sequence:
-            rnt = change[nt]
+            rnt = change[nt.upper()]
             if complement:
                 retseq += rnt
             else:
@@ -101,5 +101,5 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(base="/Users/brianmendoza/Dropbox/RosettaCRISPRMAC/")
+SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed1/")
 
