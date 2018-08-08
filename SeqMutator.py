@@ -101,5 +101,5 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed1/")
+SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed2/")
 

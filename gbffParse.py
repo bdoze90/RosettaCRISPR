@@ -51,7 +51,7 @@ def sort_grnas_by_genes(cspr_file):
                 assign_to_genes(cur_cs)
             grna_temp_storage.clear()
             break
-        else:
+        else:-
             grna_temp_storage.append(S.decompress_csf_tuple(line[:-1]))
     f.close()
 
@@ -65,9 +65,9 @@ def assign_to_genes(cs_index):
     progressindex = 0
     grna_index = 0
     for gene in ScaffGeneDict[cs_index]:
-        while grna_temp_storage[grna_index][0] < (gene[2]+20):  # PAM site is before end of gene (+20 for intron PAMs)
+        while grna_temp_storage[grna_index][0] < (gene[2]-20):  # PAM site is before end of gene (+20 for intron PAMs)
             g_tup = grna_temp_storage[grna_index]
-            if gene[1] < (g_tup[0]-20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
+            if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
                 index_start = grna_index
                 item = list(g_tup) + [is_istop(g_tup,gene[1])]
                 gene.append(item)
@@ -88,7 +88,7 @@ def is_istop(grna,atg_pos):
     codons = ['CAG','CAA','CGA']
     locs = list()
     for codon in codons:
-        if 4 < grna[1].find(codon) < 9:
+        if 3 < grna[1].find(codon) < 8:
             locs.append(grna[1].find(codon))
     if locs:
         for loc in locs:
@@ -103,7 +103,7 @@ def is_istop(grna,atg_pos):
 
 
 def generate_report(cs):
-    filename = "kfd_concise_data.csv"
+    filename = "pde_concise_data.csv"
     if os.path.exists(filename):
         ap_stat = 'a'
     else:
@@ -133,9 +133,9 @@ def progressBar(value, endvalue, bar_length=30):
     sys.stdout.flush()
 
 
-parse_gbff("/Users/brianmendoza/Dropbox/JGI_CASPER/Kfedtschenkoi_382_v1.1.gene_exons.gff3")
+parse_gbff("/Users/brianmendoza/Dropbox/JGI_CASPER/PdeltoidesWV94_445_v2.1.gene_exons.gff3")
 
-sort_grnas_by_genes("/Users/brianmendoza/Dropbox/JGI_CASPER/kfdspCas9.cspr")
+sort_grnas_by_genes("/Users/brianmendoza/Dropbox/JGI_CASPER/pdespCas9.cspr")
 
 
 
