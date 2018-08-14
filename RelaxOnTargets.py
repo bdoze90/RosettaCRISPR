@@ -12,6 +12,23 @@ class StructurePrep:
 
         self.batch = list()
 
+        self.off_combos = [1957: (1900, 1956, 0, 0),
+                           2015: (1958, 2014, 0, 0),
+                           1899: (1842, 1898, 0, 0),
+                           2073: (2016, 2072, 0, 0),
+                           2074: (2075, 2084, 0, 0),
+                           2090: (2091, 2102, 0, 0),
+                           2103: (2104, 2136, 0, 0),
+                           2137: (2138, 2143, 2252, 2257),
+                           2144: (2145, 2162, 0, 0),
+                           2163: (2164, 2202, 0, 0),
+                           2203: (2204, 2209, 2258, 2263),
+                           2210: (2211, 2222, 0, 0),
+                           2223: (2224, 2241, 2264, 2272),
+                           2242: (2243, 2251, 2273, 2281),
+                           2282
+                           ]
+
         # Setting the files to be processed:
         for file in os.listdir(self.base_dir+"FULL_MUT/"):
             if file.startswith("ON_"):
@@ -37,6 +54,6 @@ class StructurePrep:
             rr.run_batch()
 
 
-S = StructurePrep("4un3_min_relaxed_0001.pdb", "minimize", "/home/trinhlab/Documents/RosettaCRISPR/4UN4/")
+S = StructurePrep("4un3_min_relaxed_0001.pdb", "relax", "/home/trinhlab/Documents/RosettaCRISPR/4UN4/")
 
 

@@ -8,7 +8,7 @@ class RosettaBatch:
 
     def __init__(self):
         # "/home/trinhlab/Documents/RosettaCRISPR/"
-        self.base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/"
+        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR_Relaxed1/"
         self.output_dir = "FULL_MUT_PDBs/"
 
         # KEY: structure  VALUE: tuple, first is the protein file, second is the RNA directory, third is the list of
@@ -102,7 +102,7 @@ class RosettaBatch:
             if file.startswith(file_flag):
                 rr = RosettaSubprocess("score_jd2.default.macosclangrelease")
                 rr.set_inputs(["-in:file:s", file, "-out:file:scorefile", "raw_score_output/" + file + ".sc"])
-                rr.run_process()
+                rr.run_batch()
 
 
 # Code Execution
