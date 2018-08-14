@@ -66,7 +66,7 @@ class SeqMutator:
 
     # Changes the chain name to be consistent with the new PDB file:
     def change_chain_name(self, out_dir):
-        new_chain_char = out_dir[-2]
+        new_chain_char = out_dir[-6]
         os.chdir(out_dir)
         for p_file in os.listdir(os.curdir):
             # Create temp file
@@ -101,5 +101,7 @@ class SeqMutator:
         return retseq
 
 
+SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed1/")
 SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed2/")
+SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed3/")
 

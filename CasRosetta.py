@@ -7,7 +7,8 @@ from RosettaSub import RosettaSubprocess
 class RosettaBatch:
 
     def __init__(self):
-        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR/"
+        # "/home/trinhlab/Documents/RosettaCRISPR/"
+        self.base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/"
         self.output_dir = "FULL_MUT_PDBs/"
 
         # KEY: structure  VALUE: tuple, first is the protein file, second is the RNA directory, third is the list of
@@ -67,10 +68,10 @@ class RosettaBatch:
     def single_stitch(self, structure, r_file, d_file, off_flag):
         # initiate the file for the final structure:
         if off_flag:
-            out_file = open(self.base_dir + self.output_dir + structure +
+            out_file = open(self.base_dir + structure + self.output_dir +
                             "OFF_" + r_file[2:] + "_" + d_file[2:] + ".pdb", "w")
         else:
-            out_file = open(self.base_dir + self.output_dir + structure + 'ON_' + r_file[2:], "w")
+            out_file = open(self.base_dir + structure + self.output_dir + 'ON_' + r_file[2:], "w")
         # Change directory to get to the location of the protein chain file
         os.chdir(self.base_dir + structure)
         # Open and copy the lines from the protein to the output file
@@ -106,5 +107,5 @@ class RosettaBatch:
 
 # Code Execution
 rc = RosettaBatch()
-rc.stitching()
+rc.stitch_ON()
 #rc.run_pdbs_in_directory("ON_")
