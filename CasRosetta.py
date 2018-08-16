@@ -8,15 +8,15 @@ class RosettaBatch:
 
     def __init__(self):
         # "/home/trinhlab/Documents/RosettaCRISPR/"
-        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR_Relaxed1/"
+        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR_Relaxed2/"
         self.output_dir = "FULL_MUT_PDBs/"
 
         # KEY: structure  VALUE: tuple, first is the protein file, second is the RNA directory, third is the list of
         # DNA directories
+        # This one didn't work in seqmutator:"5FQ5/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
         self.pdbs_and_dirs = {"4UN3/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT"]),
                               "4UN4/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
                               "4UN5/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
-                              "5FQ5/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
                               "4OO8ABC/": ("ChainA.pdb", "ChainB_MUT/", ["ChainC_MUT/"]),
                               }
 
@@ -107,5 +107,6 @@ class RosettaBatch:
 
 # Code Execution
 rc = RosettaBatch()
-rc.stitch_ON()
+#rc.stitch_ON()
+rc.stitch_OFF()
 #rc.run_pdbs_in_directory("ON_")
