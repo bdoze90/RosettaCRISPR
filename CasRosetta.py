@@ -50,6 +50,8 @@ class RosettaBatch:
     def stitch_OFF(self, all=True, struct=None):
         # Loop to go across each crystal
         for crystal in self.pdbs_and_dirs:
+            if struct is not None and struct != crystal[:-1]:
+                continue
             print("Working on off targets for crystal structure: " + crystal)  # Output tracking
             # Loop through all the on-target sequences to generate the rna_files
             for target_sequence in self.off_combos:

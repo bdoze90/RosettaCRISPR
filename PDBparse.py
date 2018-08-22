@@ -1,53 +1,43 @@
-"""Has all the necessary functions for parsing PDB files"""
+"""Has all the necessary functions for parsing PDB files.  When you load a PDB file it will automatically break down
+the chains and the name.  Note: It ignores the Pose output from Rosetta, that is in another class/file."""
 
 
 class PDB:
 
-    def __init__(self, file):
-        self.load_file(file)
+    def __init__(self, filename):
+        # opens the file and calls the line parser
+        self.load_file(filename)
+
+        # Container for the chains and their strings, none have any more than E chains
+        self.Chain = {'A':"",'B':"",'C':"",'D':"",'E':""}
+
+        # Container for the heteroatom chains of individual chains
+        self.hetero_hold = {' ': "", 'A':"",'B':"",'C':"",'D':"",'E':""}
+
+        # DO NOT DELETE ANY SPACES, THESE ARE IMPORTANT FOR PDB FILE STRUCTURE!
+        self.ter = "TER                                                                             \n"
 
     def load_file(self, file):
         f = open(file)
         for line in f:
-            self.get_line_type(line)
+            # If you get to the pose, end the process
+            if line.startswith("#"):
+                break
+            # Parse the line by adding it to the containers
             self.parse_line(line)
-
-    def get_line_type(self, line):
-        if line.find("ATOM") != -1:
-            return "ATOM"
-        elif line.find("HEADER") != -1:
-            return "HEADER"
-        elif line.find("TITLE") != -1:
-            return "TITLE"
-        elif line.find("REMARK") != -1:
-            return "REMARK"
-        elif line.find("COMPND") != -1:
-            return "COMPND"
-        elif line.find("SOURCE") != -1:
-            return "SOURCE"
-        elif line.find("KEYWDS") != -1:
-            return "KEYWDS"
-        elif line.find("EXPDATA") != -1:
-            return "EXPDATA"
-        elif line.find("AUTHOR") != -1:
-            return "AUTHOR"
-        elif line.find("REVDAT") != -1:
-            return "REVDAT"
-        elif line.find("JRNL") != -1:
-            return "JRNL"
-        elif line.find("DBREF") != -1:
-            return "DBREF"
-        elif line.find("SEQADV") != -1:
-            return "SEQADV"
-        elif line.find("SEQRES") != -1:
-            return "SEQRES"
-        elif line.find("") != -1:
-            return ""
+        f.close()
 
     def parse_line(self, l):
+        chain = l[21]
+        if l.startswith("ATOM"):
+            self.Chain[chain] += l
+        elif l.startswith("HETNAM"):
+            self.hetero_hold[chain] += l
 
+    def return_chain(self,chain_id):
+        return self.Chain[chain_id] + self.ter
 
-def ATOM_parse(l):
+"""def ATOM_parse(l):
     name = l[:6]
     serial = int(l[6:11])
     a_name = l[12:16]
@@ -59,9 +49,4 @@ def ATOM_parse(l):
     x = l[30:38]
     y = l[38:46]
     z = l[46:54]
-    occupancy = l[54:60]
-    tempFactor =
-    element =
-    charge =
-
-def
+    occupancy = l[54:60]"""
