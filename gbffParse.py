@@ -2,7 +2,7 @@
 
 from SeqTranslate import SeqTranslate
 from operator import itemgetter
-import os,sys
+import os,sys,re
 import multiprocessing
 import concurrent.futures
 
@@ -82,14 +82,16 @@ def assign_to_genes(cs_index):
     generate_report(cs=cs_index)
     ScaffGeneDict[cs_index].clear()
 
-
+#  Misses the reverse strand TGG scenario at the moment (CCA forward).
 def is_istop(grna,atg_pos):
     # noncoding change?
-    codons = ['CAG','CAA','CGA']
+    fcodons = ['CAG','CAA','CGA']
+    rcodons = ['CCA']
     locs = list()
     for codon in codons:
-        if 3 < grna[1].find(codon) < 8:
-            locs.append(grna[1].find(codon))
+        qc = grna[1][2:11].find(codon)
+        if qc != -1:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
+            locs.append(qc + 2)  # Fixes indexing of old system
     if locs:
         for loc in locs:
             if (atg_pos - loc-20+grna[0]) % 3 == 0 and grna[4]:
