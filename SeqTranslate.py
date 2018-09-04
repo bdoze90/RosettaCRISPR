@@ -38,6 +38,8 @@ class SeqTranslate:
 
     def compress(self, uncompressed, base):
         compseq = 0
+        # Checks to see if the uncompressed is a string or base10 and if it is a nt string,
+        # This if statement takes the nucleotides and first turns it into a base10
         if type(uncompressed) == str:
             for i in range(len(uncompressed)):
                 val = self.nt2int(uncompressed[i]) * pow(4, i)  # multiplying by power-4 converts to base10
@@ -91,14 +93,14 @@ class SeqTranslate:
         scr = self.decompress64(mytuple[2])
         split = seq.find("+")
         if split != -1:
-            dira = True
+            dira = "+"
             sequence = seq[:split]
             pam = seq[split+1:]
         else:
             seq = seq.split("-")
             sequence = seq[0]
             pam = seq[1]
-            dira = False
+            dira = "-"
         sequence = self.decompress64(sequence, True)
         pam = self.decompress64(pam, True)
         # The for loops fixes the problem of A's not being added to the end because they are removed on compression
@@ -118,6 +120,9 @@ class SeqTranslate:
 
 
 S = SeqTranslate()
-#print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
-print(S.decompress64("9v",True))
+f = open("/Users/brianmendoza/Desktop/OFF_QUERY.txt")
+for line in f:
+    print(S.decompress_csf_tuple(line[:-1]))
+f.close()
+#print(S.decompress64("9v",True))
 

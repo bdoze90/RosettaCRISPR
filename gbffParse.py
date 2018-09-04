@@ -51,7 +51,7 @@ def sort_grnas_by_genes(cspr_file):
                 assign_to_genes(cur_cs)
             grna_temp_storage.clear()
             break
-        else:-
+        else:
             grna_temp_storage.append(S.decompress_csf_tuple(line[:-1]))
     f.close()
 
@@ -69,7 +69,7 @@ def assign_to_genes(cs_index):
             g_tup = grna_temp_storage[grna_index]
             if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
                 index_start = grna_index
-                item = list(g_tup) + [is_istop(g_tup,gene[1])]
+                item = list(g_tup) + [is_istop(g_tup,gene[1],gene[3],grna_temp_storage[grna_index][4])]
                 gene.append(item)
             if grna_index < len(grna_temp_storage)-1:  # Still in the right scaffold
                 grna_index += 1
@@ -82,11 +82,12 @@ def assign_to_genes(cs_index):
     generate_report(cs=cs_index)
     ScaffGeneDict[cs_index].clear()
 
-#  Misses the reverse strand TGG scenario at the moment (CCA forward).
-def is_istop(grna,atg_pos):
-    # noncoding change?
-    fcodons = ['CAG','CAA','CGA']
-    rcodons = ['CCA']
+
+def is_istop(grna,atg_pos, strand, gstrand):
+    if strand == gstrand:  # checks to see if the PAM and the gRNA sequence are on the same strand
+        codons = ['CAG','CAA','CGA']
+    else:
+        codons = ['CCA']
     locs = list()
     for codon in codons:
         qc = grna[1][2:11].find(codon)

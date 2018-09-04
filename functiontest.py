@@ -6,5 +6,7 @@ from multiprocessing.pool import ThreadPool
 import subprocess
 
 
-s = "ABCDEDFFA"
-print(s[4:])
+s = True
+t = False
+
+print(st)
