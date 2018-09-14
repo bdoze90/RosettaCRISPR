@@ -2,9 +2,11 @@
 
 from SeqTranslate import SeqTranslate
 from operator import itemgetter
-import os,sys,re
-import multiprocessing
-import concurrent.futures
+import os,sys
+
+input_gbff = sys.argv[1]
+input_cspr = sys.argv[2]
+output_csv = sys.argv[3]
 
 grna_temp_storage = list()
 # main storage vehicle
@@ -106,7 +108,7 @@ def is_istop(grna,atg_pos, strand, gstrand):
 
 
 def generate_report(cs):
-    filename = "pde_concise_data.csv"
+    filename = output_csv
     if os.path.exists(filename):
         ap_stat = 'a'
     else:
@@ -136,9 +138,9 @@ def progressBar(value, endvalue, bar_length=30):
     sys.stdout.flush()
 
 
-parse_gbff("/Users/brianmendoza/Dropbox/JGI_CASPER/PdeltoidesWV94_445_v2.1.gene_exons.gff3")
+parse_gbff(input_gbff)
 
-sort_grnas_by_genes("/Users/brianmendoza/Dropbox/JGI_CASPER/pdespCas9.cspr")
+sort_grnas_by_genes(input_cspr)
 
 
 

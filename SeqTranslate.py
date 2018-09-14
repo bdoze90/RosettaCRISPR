@@ -120,9 +120,8 @@ class SeqTranslate:
 
 
 S = SeqTranslate()
-f = open("/Users/brianmendoza/Desktop/OFF_QUERY.txt")
-for line in f:
-    print(S.decompress_csf_tuple(line[:-1]))
-f.close()
-#print(S.decompress64("9v",True))
+#print(S.decompress_csf_tuple())
+
+print(S.decompress64("AhK",False))
+print(S.compress(141437377755363,64))
 
