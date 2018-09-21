@@ -120,8 +120,8 @@ class SeqTranslate:
 
 
 S = SeqTranslate()
-#print(S.decompress_csf_tuple())
+print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
 
-print(S.decompress64("AhK",False))
-print(S.compress(141437377755363,64))
+#print(S.decompress64("AhK",False))
+#print(S.compress(141437377755363,64))
 

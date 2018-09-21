@@ -20,12 +20,13 @@ def parse_gbff(file_path):
             print(line)
         else:
             istics = line[:-1].split("\t")
-            # grab only the exon lines
-            if istics[2] == 'exon':
+            # grab only the CDS lines
+            if istics[2] == 'CDS':
                 keywds = istics[8].split(";")
                 geneid = keywds[1][keywds[1].find("=")+1:-5]
                 # reports the gene identification, positions, and direction
-                mistics = [geneid,int(istics[3]),int(istics[4]),istics[6]]
+                # istics[3] is subtracted by 1 to make the indexing 0-base, istics[4] does not need any mod for inc.
+                mistics = [geneid,int(istics[3])-1,int(istics[4]),istics[6]]
                 # stores the data in a dict of lists for exon/gene and chromosome/scaffold lookup:
                 if istics[0] not in ScaffGeneDict:
                     ScaffGeneDict[istics[0]] = [mistics]
@@ -71,6 +72,7 @@ def assign_to_genes(cs_index):
             g_tup = grna_temp_storage[grna_index]
             if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
                 index_start = grna_index
+
                 item = list(g_tup) + [is_istop(g_tup,gene[1],gene[3],grna_temp_storage[grna_index][4])]
                 gene.append(item)
             if grna_index < len(grna_temp_storage)-1:  # Still in the right scaffold
@@ -87,22 +89,24 @@ def assign_to_genes(cs_index):
 
 def is_istop(grna,atg_pos, strand, gstrand):
     if strand == gstrand:  # checks to see if the PAM and the gRNA sequence are on the same strand
-        codons = ['CAG','CAA','CGA']
+        codons = ['CAG', 'CAA', 'CGA']
+        out = 0  # compensates by giving the index of the out
     else:
         codons = ['CCA']
+        out = 1
     locs = list()
+    codes = list()
     for codon in codons:
-        qc = grna[1][2:11].find(codon)
-        if qc != -1:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
-            locs.append(qc + 2)  # Fixes indexing of old system
+        qc = grna[1].find(codon)
+        if 2 < qc < 11:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
+            locs.append(qc+out)  # Fixes indexing of old system and gives the right indexing for division
+            codes.append(codon)
     if locs:
-        for loc in locs:
-            if (atg_pos - loc-20+grna[0]) % 3 == 0 and grna[4]:
-                return "YES"
-            elif (atg_pos - loc - 20 + grna[0]) % 3 == 0 and not grna[4]:
-                return "YES"
+        for i in range(len(locs)):
+            if (atg_pos - (grna[0]-20+locs[i])) % 3 == 0:
+                return "YES:"
             else:
-                return "off"
+                return "OOF" + str((atg_pos - (grna[0]-20+locs[i])) % 3)
     else:
         return "NO"
 
@@ -121,11 +125,7 @@ def generate_report(cs):
             for i in range(len(grna)):
                 if i != 4:
                     f.write(str(grna[i]) + ",")
-            if grna[4]:
-                f.write("+")
-            else:
-                f.write("-")
-            f.write("\n")
+            f.write(grna[4] + "\n")
     print(" completed " + cs)
     f.close()
 
