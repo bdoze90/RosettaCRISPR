@@ -73,7 +73,7 @@ def assign_to_genes(cs_index):
             if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
                 index_start = grna_index
 
-                item = list(g_tup) + [is_istop(g_tup,gene[1],gene[3],grna_temp_storage[grna_index][4])]
+                item = list(g_tup) + [is_istop(g_tup,gene[1],gene[2],gene[3],grna_temp_storage[grna_index][4])]
                 gene.append(item)
             if grna_index < len(grna_temp_storage)-1:  # Still in the right scaffold
                 grna_index += 1
@@ -87,26 +87,29 @@ def assign_to_genes(cs_index):
     ScaffGeneDict[cs_index].clear()
 
 
-def is_istop(grna,atg_pos, strand, gstrand):
+def is_istop(grna, atg_pos, end_pos, strand, gstrand):
     if strand == gstrand:  # checks to see if the PAM and the gRNA sequence are on the same strand
         codons = ['CAG', 'CAA', 'CGA']
-        out = 0  # compensates by giving the index of the out
     else:
         codons = ['CCA']
-        out = 1
     locs = list()
     codes = list()
     for codon in codons:
         qc = grna[1].find(codon)
         if 2 < qc < 11:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
-            locs.append(qc+out)  # Fixes indexing of old system and gives the right indexing for division
+            locs.append(qc)  # Fixes indexing of old system and gives the right indexing for division
             codes.append(codon)
     if locs:
         for i in range(len(locs)):
-            if (atg_pos - (grna[0]-20+locs[i])) % 3 == 0:
-                return "YES:"
+            # below if statement corrects the indexing if the gRNA sequence is on the revcom of the base genome direction
+            if gstrand == '-':
+                put_loc = grna[0]+20-locs[i]+1
             else:
-                return "OOF" + str((atg_pos - (grna[0]-20+locs[i])) % 3)
+                put_loc = grna[0]-20+locs[i]
+            if (atg_pos - put_loc) % 3 == 0 and end_pos > put_loc > atg_pos:  # makes sure codon is within CDS
+                return "YES"
+            else:
+                return "OOF"
     else:
         return "NO"
 
