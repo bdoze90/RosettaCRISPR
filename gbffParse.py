@@ -96,16 +96,16 @@ def is_istop(grna, atg_pos, end_pos, strand, gstrand):
     codes = list()
     for codon in codons:
         qc = grna[1].find(codon)
-        if 2 < qc < 11:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
+        if 6 < qc < 15:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
             locs.append(qc)  # Fixes indexing of old system and gives the right indexing for division
             codes.append(codon)
     if locs:
         for i in range(len(locs)):
             # below if statement corrects the indexing if the gRNA sequence is on the revcom of the base genome direction
             if gstrand == '-':
-                put_loc = grna[0]+20-locs[i]+1
+                put_loc = grna[0]-20+locs[i]+1
             else:
-                put_loc = grna[0]-20+locs[i]
+                put_loc = grna[0]+20-locs[i]
             if (atg_pos - put_loc) % 3 == 0 and end_pos > put_loc > atg_pos:  # makes sure codon is within CDS
                 return "YES"
             else:
