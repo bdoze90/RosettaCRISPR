@@ -67,10 +67,12 @@ def assign_to_genes(cs_index):
     index_start = -1
     progressindex = 0
     grna_index = 0
+    # gene: mistics see line 29 for order
     for gene in ScaffGeneDict[cs_index]:
-        while grna_temp_storage[grna_index][0] < (gene[2]-20):  # PAM site is before end of gene (+20 for intron PAMs)
+        #grna_index = gene[1]-20
+        while grna_temp_storage[grna_index][0] < (gene[2]-20):  # PAM site is before end of gene (-20 for intron PAMs)
             g_tup = grna_temp_storage[grna_index]
-            if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (-20 for promoter/intron PAMs)
+            if gene[1] < (g_tup[0]+20):  # PAM site is after start of gene (+20 for promoter/intron PAMs)
                 index_start = grna_index
 
                 item = list(g_tup) + [is_istop(g_tup,gene[1],gene[2],gene[3],grna_temp_storage[grna_index][4])]
