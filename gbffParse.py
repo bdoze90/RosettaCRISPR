@@ -4,12 +4,9 @@ from SeqTranslate import SeqTranslate
 from operator import itemgetter
 import os,sys
 
-"""input_gbff = sys.argv[1]
+input_gbff = sys.argv[1]
 input_cspr = sys.argv[2]
-output_csv = sys.argv[3]"""
-input_gbff = "/Users/brianmendoza/Dropbox/JGI_CASPER/Kfedtschenkoi_gene_exons.gff3"
-input_cspr = "/Users/brianmendoza/Dropbox/JGI_CASPER/kfdspCas9.cspr"
-output_csv = "/Users/brianmendoza/Desktop/kfd_concise_grnafix.csv"
+output_csv = sys.argv[3]
 
 grna_temp_storage = list()
 # main storage vehicle
@@ -69,7 +66,6 @@ def assign_to_genes(cs_index):
     print(total)
     index_start = 0
     progressindex = 0
-    grna_index = 0
     # gene: mistics see line 29 for order
     for gene in ScaffGeneDict[cs_index]:
         grna_index = index_start
@@ -85,8 +81,6 @@ def assign_to_genes(cs_index):
             if grna_index < len(grna_temp_storage)-1:  # Still in the scaffold
                 grna_index += 1
             else:  # No longer in the gene or scaffold
-                #if index_start > 0:
-                    #grna_index = index_start
                 break
         progressindex += 1
         progressBar(progressindex,total)
