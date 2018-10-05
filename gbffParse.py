@@ -3,10 +3,12 @@
 from SeqTranslate import SeqTranslate
 from operator import itemgetter
 import os,sys
+import re
 
 input_gbff = sys.argv[1]
 input_cspr = sys.argv[2]
 output_csv = sys.argv[3]
+
 
 grna_temp_storage = list()
 # main storage vehicle
@@ -96,9 +98,9 @@ def is_istop(grna, atg_pos, end_pos, strand, gstrand):
     locs = list()
     codes = list()
     for codon in codons:
-        qc = grna[1].find(codon)
-        if 2 < qc < 11:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
-            locs.append(qc)  # Fixes indexing of old system and gives the right indexing for division
+        qc = [m.start() for m in re.finditer(codon, grna[1][2:11])]
+        for hit in qc:  # Looking for stop codon somewhere between 3rd and 9th bp (0 indexing)
+            locs.append(hit+2)  # Fixes indexing of old system and gives the right indexing for division
             codes.append(codon)
     if locs:
         for i in range(len(locs)):
@@ -109,8 +111,7 @@ def is_istop(grna, atg_pos, end_pos, strand, gstrand):
                 put_loc = grna[0]-20+locs[i]
             if (atg_pos - put_loc) % 3 == 0 and end_pos > put_loc > atg_pos:  # makes sure codon is within CDS
                 return "YES"
-            else:
-                return "OOF"
+        return "OOF"
     else:
         return "NO"
 

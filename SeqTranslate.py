@@ -119,9 +119,9 @@ class SeqTranslate:
         return newseq
 
 
-S = SeqTranslate()
+#S = SeqTranslate()
 #print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
 
-print(S.decompress64("B0KZ",False))
-print(S.compress("CTGCCAGCAGCAAATCTGTC",64))
+#print(S.decompress64("OUauh",True))
+#print(S.compress("CTGCCAGCAGCAAATCTGTC",64))
 
