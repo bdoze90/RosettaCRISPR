@@ -5,14 +5,14 @@ the chains and the name.  Note: It ignores the Pose output from Rosetta, that is
 class PDB:
 
     def __init__(self, filename):
-        # opens the file and calls the line parser
-        self.load_file(filename)
-
         # Container for the chains and their strings, none have any more than E chains
-        self.Chain = {'A':"",'B':"",'C':"",'D':"",'E':""}
+        self.Chain = {'A': "", 'B': "", 'C': "", 'D': "", 'E': ""}
 
         # Container for the heteroatom chains of individual chains
-        self.hetero_hold = {' ': "", 'A':"",'B':"",'C':"",'D':"",'E':""}
+        self.hetero_hold = {' ': "", 'A': "", 'B': "", 'C': "", 'D': "", 'E': ""}
+
+        # opens the file and calls the line parser
+        self.load_file(filename)
 
         # DO NOT DELETE ANY SPACES, THESE ARE IMPORTANT FOR PDB FILE STRUCTURE!
         self.ter = "TER                                                                             \n"
@@ -50,3 +50,6 @@ class PDB:
     y = l[38:46]
     z = l[46:54]
     occupancy = l[54:60]"""
+
+#p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/4un3_min_relaxed_0001.pdb")
+#print(p.return_chain("A"))

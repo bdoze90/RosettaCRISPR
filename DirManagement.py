@@ -5,7 +5,7 @@ import os
 offbases = [1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
 
 # Set the directory to RosettaCRISPR
-base_dir = "/Users/brianmendoza/Dropbox/RosettaCRISPR/"
+base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/"
 
 
 def make_master_dirs():
@@ -43,3 +43,4 @@ def make_master_dirs():
 
 def make_struct_specific_dirs(struct):
     os.chdir(base_dir + struct)
+    for

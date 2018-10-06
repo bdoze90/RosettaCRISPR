@@ -11,10 +11,9 @@ from PDBparse import PDB
 
 class OffMutator:
 
-    def __init__(self, base, b_pdb):
-        self.base_dir = base + b_pdb + "/"  # This should be the directory of the pdb you are working off of
-        self.new_seqs = list()
-        self.input_dir = base + b_pdb + "/on_target_relaxed/struct_output/"
+    def __init__(self, base, structureID):
+        self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
+        self.structureID = structureID
 
         # List of the off-target sequences needed for the mutation process
         self.off_combos = {1957: (1900, 1956, 0, 0),
@@ -35,29 +34,61 @@ class OffMutator:
                            }
 
         # List of all the appropriate indexes for the mutated sequences and crystal structures
-        self.cs_dict = {"4UN3/ChainA": ('r', 0, 81, '', ''),
-                        "4UN3/ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
-                        "4UN3/ChainD": ('d', 17, 'n', '', 'TGGTATTG'),
-                        "4UN4/ChainA": ('r', 0, 81, '', ''),
-                        "4UN4/ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
-                        "4UN4/ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                        "4UN4/ChainE": ('d', 0, 17, 'rc', ''),
-                        "4UN5/ChainA": ('r', 0, 81, '', ''),
-                        "4UN5/ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
-                        "4UN5/ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                        "4UN5/ChainE": ('d', 0, 17, 'rc', ''),
-                        "5FQ5/ChainA": ('r', 0, 81, '', ''),
-                        "5FQ5/ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
-                        "5FQ5/ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                        "5FQ5/ChainE": ('d', 0, 17, 'rc', ''),
-                        "4OO8ABC/ChainB": ('r', 0, 'n', '', ''),
-                        "4OO8ABC/ChainC": ('d', 0, 'n', 'rc', '')
+        self.cs_dict = {"4UN3":{"ChainA": ('r', 0, 81, '', ''),
+                                "ChainB": ('protein','n','n','n','n')
+                                "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
+                                "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
+
+                        "4UN4":{"ChainA": ('r', 0, 81, '', ''),
+                                "ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
+                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "4UN5":{"ChainA": ('r', 0, 81, '', ''),
+                                "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
+                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "5FQ5":{"ChainA": ('r', 0, 81, '', ''),
+                                "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
+                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "4OO8ABC":{"ChainB": ('r', 0, 'n', '', ''),
+                                   "ChainC": ('d', 0, 'n', 'rc', '')}
                         }
 
-        self.dissect_base_files("new")
+        # First thing: Pull apart all the Off-target relaxed files:
+        self.pull_apart()
+
+        # Second thing: Make the mutant chains for all the required off-target mutations
+        self.chain_mutations()
 
         self.RC = RosettaBatch()
         #RC.stitch_OFF(struct=b_pdb)
+
+
+    # This function pulls apart the individual chains of the perfectly matched pdb and sorts the chains into
+    # the correct folder.  It will do this for every ensemble and every ON_ pdb in the OFF_TARGET folder
+    def pull_apart(self):
+        for i in range(5):
+            ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET"
+            os.chdir(ensemble_dir)
+            # Iterate over all the ON_00xxxx directories:
+            for directory in os.listdir(os.curdir):
+                # Check to make sure it is not a .DS_Store file
+                if directory.startswith("ON_"):
+                    os.chdir(ensemble_dir + "/" + directory)
+                    # dissect the file:
+                    myfile = directory + ".pdb"
+                    P = PDB(myfile)
+                    for chain in self.cs_dict[self.structureID]:
+                        f = open(self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/" + directory + "/" + chain + ".pdb")
+                        f.write(P.return_chain(chain[5]))
+                        f.close()
+
+
+
 
     # This function takes every file in the structure output and pulls apart its protein lines and gets the new chain
     def dissect_base_files(self, nucleotides):
@@ -91,10 +122,6 @@ class OffMutator:
                 ["-s", "temp_pdb_file.pdb", "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
             rr.run_process()
         os.remove("temp_pdb_file.pdb")
-
-
-    def use_old_nucleotides(self):
-
 
 
     def read_in_seqs(self, chain_name):
@@ -162,4 +189,3 @@ class OffMutator:
         return retseq
 
 
-of = OffMutator("/home/trinhlab/Documents/RosettaCRISPR_Relaxed1/", "4UN3")
