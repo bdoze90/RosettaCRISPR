@@ -34,25 +34,26 @@ class OffMutator:
                            }
 
         # List of all the appropriate indexes for the mutated sequences and crystal structures
-        self.cs_dict = {"4UN3":{"ChainA": ('r', 0, 81, '', ''),
-                                "ChainB": ('protein','n','n','n','n')
-                                "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
-                                "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
+        self.cs_dict = {"4UN3": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein','n','n','n','n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
 
-                        "4UN4":{"ChainA": ('r', 0, 81, '', ''),
-                                "ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
-                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                                "ChainE": ('d', 0, 17, 'rc', '')},
+                        "4UN4": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
 
-                        "4UN5":{"ChainA": ('r', 0, 81, '', ''),
-                                "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
-                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                                "ChainE": ('d', 0, 17, 'rc', '')},
+                        "4UN5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
 
-                        "5FQ5":{"ChainA": ('r', 0, 81, '', ''),
-                                "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
-                                "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
-                                "ChainE": ('d', 0, 17, 'rc', '')},
+                        "5FQ5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
 
                         "4OO8ABC":{"ChainB": ('r', 0, 'n', '', ''),
                                    "ChainC": ('d', 0, 'n', 'rc', '')}
@@ -79,49 +80,35 @@ class OffMutator:
                 # Check to make sure it is not a .DS_Store file
                 if directory.startswith("ON_"):
                     os.chdir(ensemble_dir + "/" + directory)
+                    # get the number of the on-target:
+                    onid = int(directory[3:directory.find(".")])
                     # dissect the file:
                     myfile = directory + ".pdb"
                     P = PDB(myfile)
                     for chain in self.cs_dict[self.structureID]:
-                        f = open(self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/" + directory + "/" + chain + ".pdb")
+                        chainFileName = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/" + directory + "/" + chain + ".pdb"
+                        f = open(chainFileName,'w')
                         f.write(P.return_chain(chain[5]))
                         f.close()
+                        # Now mutate the chain to all of its necessary off-target iterations:
+                        self.create_new_rna_dnas(onid, chain, chainFileName)
 
 
-
-
-    # This function takes every file in the structure output and pulls apart its protein lines and gets the new chain
-    def dissect_base_files(self, nucleotides):
-        # Go through all of the base on-target files for the off-target investigation
-        os.chdir(self.input_dir)
-        for on_base in os.listdir(self.input_dir):
-            base_file = PDB(on_base)
-
-            if nucleotides == 'new':
-                # get every mutant in the range listed for the off_combos with the key of the on_base:
-                for i in range(self.off_combos[int(on_base[5:9])][0],self.off_combos[int(on_base[5:9])][1]):
-                    # identify the sequence needed:
-                    'd_00' + str(i)
-                    'r_00' + str(i)
-
-
-
-                self.create_new_rna_dnas(base_file.return_chain("A"), sequences)
-            else:
-                self.use_old_nucleotides()
-
-    def create_new_rna_dnas(self, chain, mutations):
-        # Create a temporary file for the chain to be turned into a pdb:
-        tf = open("temp_pdb_file.pdb",'w')
-        tf.writelines(chain)
-        tf.close()
-        # Run the Rosetta Subprocess for each sequence:
-        for seq in mutations:
+    def create_new_rna_dnas(self, ontarget_id, chain, pdb_file):
+        # Iterate across all the sequence ids for the off-target mutations:
+        for i in range(self.off_combos[ontarget_id][0],self.off_combos[ontarget_id][1]+1):  # need the plus 1 to make it inclusive
+            # check to see whether the chain is DNA or RNA:
+            if self.cs_dict[self.structureID][chain][0] == 'd':
+                outfilename = 'd_00' + str(i)
+            elif self.cs_dict[self.structureID][chain][0] == 'r':
+                outfilename = 'r_00' + str(i)
+            #
+            # Run the Rosetta Subprocess for each sequence:
             rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
             rr.set_inputs(
                 ["-s", "temp_pdb_file.pdb", "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
             rr.run_process()
-        os.remove("temp_pdb_file.pdb")
+            os.remove("temp_pdb_file.pdb")
 
 
     def read_in_seqs(self, chain_name):
