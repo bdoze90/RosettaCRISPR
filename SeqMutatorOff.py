@@ -2,9 +2,8 @@
 the on-target bases (struct_output).  This allows multiple structure outputs to be run and scored."""
 
 from tempfile import mkstemp
-from shutil import move
+import shutil
 import os
-from CasRosetta import RosettaBatch
 from RosettaSub import RosettaSingleProcess
 from PDBparse import PDB
 
@@ -12,8 +11,13 @@ from PDBparse import PDB
 class OffMutator:
 
     def __init__(self, base, structureID):
+
         self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
         self.structureID = structureID
+
+        # containers for the mutated sequences.  The first position is the "EMPTY" string to get indexing right.
+        self.rSequences = ["EMPTY"]
+        self.dSequences = ["EMPTY"]
 
         # List of the off-target sequences needed for the mutation process
         self.off_combos = {1957: (1900, 1956, 0, 0),
@@ -35,7 +39,7 @@ class OffMutator:
 
         # List of all the appropriate indexes for the mutated sequences and crystal structures
         self.cs_dict = {"4UN3": {"ChainA": ('r', 0, 81, '', ''),
-                                 "ChainB": ('protein','n','n','n','n'),
+                                 "ChainB": ('protein','','','',''),
                                  "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
                                  "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
 
@@ -46,102 +50,132 @@ class OffMutator:
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
                         "4UN5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
                         "5FQ5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
                         "4OO8ABC":{"ChainB": ('r', 0, 'n', '', ''),
+                                   "ChainA": ('protein', 'n', 'n', 'n', 'n'),
                                    "ChainC": ('d', 0, 'n', 'rc', '')}
                         }
 
-        # First thing: Pull apart all the Off-target relaxed files:
-        self.pull_apart()
+        # Before doing anything else: pull in the rna and dna sequences into the RNA and DNA containers (lists):
+        self.grab_seqs(base)
 
-        # Second thing: Make the mutant chains for all the required off-target mutations
-        self.chain_mutations()
+        # For each of the ensembles, the following functions need to be performed:
+        # self.pull_apart()
+        # self.full_mut_pdbs()
+        # self.run_Rosetta()
+        for i in range(1,3):
+            ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/"
+            # First thing: Pull apart all the Off-target relaxed files:
+            self.pull_apart(ensemble_dir,i)
+            # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
+            #self.full_mut_pdbs(ensemble_dir)
 
-        self.RC = RosettaBatch()
+        #self.RC = RosettaBatch()
         #RC.stitch_OFF(struct=b_pdb)
 
 
+    # Gets all the sequences from the RNA and DNA text files and puts them into the folders
+    def grab_seqs(self, base_directory):
+        R = open(base_directory + "/rna_seqs.txt")
+        for line in R:
+            self.rSequences.append(line[:-1].split("\t")[1].upper())
+        R.close()
+        D = open(base_directory + "/dna_seqs.txt")
+        for line in D:
+            self.dSequences.append(line[:-1].split("\t")[1].upper())
+        D.close()
+
+# --------------------FUNCTIONS CALLED IN THE ENSEMBLE LOOP---------------------------- #
+
+    # FUNCTION # 1
     # This function pulls apart the individual chains of the perfectly matched pdb and sorts the chains into
     # the correct folder.  It will do this for every ensemble and every ON_ pdb in the OFF_TARGET folder
-    def pull_apart(self):
-        for i in range(5):
-            ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET"
-            os.chdir(ensemble_dir)
-            # Iterate over all the ON_00xxxx directories:
-            for directory in os.listdir(os.curdir):
-                # Check to make sure it is not a .DS_Store file
-                if directory.startswith("ON_"):
-                    os.chdir(ensemble_dir + "/" + directory)
-                    # get the number of the on-target:
-                    onid = int(directory[3:directory.find(".")])
-                    # dissect the file:
-                    myfile = directory + ".pdb"
-                    P = PDB(myfile)
-                    for chain in self.cs_dict[self.structureID]:
-                        chainFileName = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/" + directory + "/" + chain + ".pdb"
-                        f = open(chainFileName,'w')
+    def pull_apart(self, edir, ens):
+        os.chdir(edir)
+        # Iterate over all the ON_00xxxx directories:
+        for directory in os.listdir(os.curdir):
+            # Check to make sure it is not a .DS_Store file
+            if directory.startswith("ON_"):
+                os.chdir(edir + "/" + directory)
+                # get the number of the on-target:
+                onid = int(directory[3:])
+                # dissect the file:
+                myfile =  os.getcwd() + "/" + directory + "_relaxed_000" + str(ens) + ".pdb"
+                P = PDB(myfile)
+                for chain in self.cs_dict[self.structureID]:
+                    # make sure you aren't trying to parse the protein:
+                    if self.cs_dict[self.structureID][chain][0] != "protein":
+                        wdir = edir + directory
+                        f = open(wdir + "/" + chain + ".pdb",'w')
                         f.write(P.return_chain(chain[5]))
                         f.close()
                         # Now mutate the chain to all of its necessary off-target iterations:
-                        self.create_new_rna_dnas(onid, chain, chainFileName)
+                        self.create_new_rna_dnas(onid, chain, wdir)
 
-
-    def create_new_rna_dnas(self, ontarget_id, chain, pdb_file):
+    # FUNCTION # 1b
+    # Function is called from pull_apart and creates the new sub-pdb chain files for each of the desired mutations
+    def create_new_rna_dnas(self, ontarget_id, chain, working_dir):
         # Iterate across all the sequence ids for the off-target mutations:
         for i in range(self.off_combos[ontarget_id][0],self.off_combos[ontarget_id][1]+1):  # need the plus 1 to make it inclusive
-            # check to see whether the chain is DNA or RNA:
-            if self.cs_dict[self.structureID][chain][0] == 'd':
-                outfilename = 'd_00' + str(i)
-            elif self.cs_dict[self.structureID][chain][0] == 'r':
-                outfilename = 'r_00' + str(i)
-            #
+            mysequence = str()
+            outfilename = str()
+            # get the tuple responsible for all chain identifiers:
+            specs = self.cs_dict[self.structureID][chain]
+            # check to see whether the chain is DNA or RNA, then set filename and gather appropriate sequence:
+            if specs[0] == 'd':
+                outfilename = 'd_00' + str(i) + ".pdb"
+                if specs[2] == 'n':
+                    mysequence = self.dSequences[i][specs[1]:] + specs[4]
+                else:
+                    mysequence = self.dSequences[i][specs[1]:specs[2]] + specs[4]
+            elif specs[0] == 'r':
+                outfilename = 'r_00' + str(i) + ".pdb"
+                if specs[2] == 'n':
+                    mysequence = self.rSequences[i][specs[1]:] + specs[4]
+                else:
+                    mysequence = self.rSequences[i][specs[1]:specs[2]] + specs[4]
+            # check to see if you need to run the sequence through revcom algorithm:
+            if specs[3] == 'rc':
+                mysequence = self.revcom(mysequence)
+
             # Run the Rosetta Subprocess for each sequence:
             rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
             rr.set_inputs(
-                ["-s", "temp_pdb_file.pdb", "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
+                ["-s", working_dir + "/" + chain + ".pdb", "-seq", mysequence.lower(), "-o",  working_dir + "/" + chain + "_MUT/" + outfilename])
             rr.run_process()
-            os.remove("temp_pdb_file.pdb")
+            self.change_chain_name(working_dir + "/" + chain + "_MUT")
 
 
-    def read_in_seqs(self, chain_name):
-        base_pdb = self.base_dir + chain_name + ".pdb"
-        output_directory = self.base_dir + chain_name + "_MUT" + "/"
-        seq_file = self.seq_lists[self.cs_dict[chain_name][0]]
-        f = open(self.base_dir + seq_file)
-        for line in f:
-            s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
-            ix = self.cs_dict[chain_name]
-            # check for addendum:
-            qs = s[1] + ix[4]
-            # check if the 'n' exists then just use the first index:
-            if ix[2] == 'n':
-                seq = qs[ix[1]:]
-                # check for revcomness:
-                if ix[3] == 'rc':
-                    seq = self.revcom(seq)
-            else:
-                seq = qs[ix[1]:ix[2]]  # grabs second index and the length of the sequence for the structure
-                if ix[3] == 'rc':
-                    seq = self.revcom(seq)
-            print(seq)
-            rr = RosettaSingleProcess("rna_thread.default.linuxgccrelease")
-            rr.set_inputs(
-                ["-s", base_pdb, "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
-            rr.run_process()
-        f.close()
-        self.change_chain_name(output_directory)
+    # FUNCTION #2
+    # This function is the second call in the ensemble loop and creates the mutant structures and the appropriate
+    # directory for the structures to be scored in.
+    def full_mut_pdbs(self, edir):
+        # Iterate over every "on-target" directory in the OFF_TARGET folder:
+        # Get to the right directory for each of the structures in OFF_TARGETs
+        os.chdir(edir)
+        # make the full_mut_directory:
+        if os.path.isdir("full_mut_pdbs"):
+            shutil.rmtree("full_mut_pdbs")
+        os.mkdir("full_mut_pdbs")
+
+
+
+    # -------------------------ACCESSORY FUNCTIONS-------------------------------- #
+
 
     # Changes the chain name to be consistent with the new PDB file:
     def change_chain_name(self, out_dir):
-        new_chain_char = out_dir[-6]
+        new_chain_char = out_dir[-5]
         os.chdir(out_dir)
         for p_file in os.listdir(os.curdir):
             # Create temp file
@@ -159,7 +193,7 @@ class OffMutator:
                 # Remove original file
                 os.remove(p_file)
                 # Move new file
-                move(abs_path, p_file)
+                shutil.move(abs_path, p_file)
 
     def revcom(self, sequence, complement=False):
         retseq = ""
@@ -176,3 +210,4 @@ class OffMutator:
         return retseq
 
 
+O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3")
