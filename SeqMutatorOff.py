@@ -10,7 +10,7 @@ from PDBparse import PDB
 
 class OffMutator:
 
-    def __init__(self, base, structureID):
+    def __init__(self, base, structureID, Step1=True, Step2=True):
 
         self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
         self.structureID = structureID
@@ -76,9 +76,11 @@ class OffMutator:
         for i in range(1,3):
             ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/"
             # First thing: Pull apart all the Off-target relaxed files:
-            self.pull_apart(ensemble_dir,i)
+            if Step1:
+                self.pull_apart(ensemble_dir,i)
             # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
-            #self.full_mut_pdbs(ensemble_dir)
+            if Step2:
+                self.full_mut_pdbs(ensemble_dir)
 
         #self.RC = RosettaBatch()
         #RC.stitch_OFF(struct=b_pdb)
@@ -113,13 +115,13 @@ class OffMutator:
                 myfile =  os.getcwd() + "/" + directory + "_relaxed_000" + str(ens) + ".pdb"
                 P = PDB(myfile)
                 for chain in self.cs_dict[self.structureID]:
+                    wdir = edir + directory
+                    f = open(wdir + "/" + chain + ".pdb",'w')
+                    f.write(P.return_chain(chain[5]))
+                    f.close()
+                    # Now mutate the chain to all of its necessary off-target iterations:
                     # make sure you aren't trying to parse the protein:
                     if self.cs_dict[self.structureID][chain][0] != "protein":
-                        wdir = edir + directory
-                        f = open(wdir + "/" + chain + ".pdb",'w')
-                        f.write(P.return_chain(chain[5]))
-                        f.close()
-                        # Now mutate the chain to all of its necessary off-target iterations:
                         self.create_new_rna_dnas(onid, chain, wdir)
 
     # FUNCTION # 1b
@@ -153,7 +155,8 @@ class OffMutator:
             rr.set_inputs(
                 ["-s", working_dir + "/" + chain + ".pdb", "-seq", mysequence.lower(), "-o",  working_dir + "/" + chain + "_MUT/" + outfilename])
             rr.run_process()
-            self.change_chain_name(working_dir + "/" + chain + "_MUT")
+            print(outfilename,ontarget_id,i)
+        self.change_chain_name(working_dir + "/" + chain + "_MUT")
 
 
     # FUNCTION #2
@@ -161,12 +164,83 @@ class OffMutator:
     # directory for the structures to be scored in.
     def full_mut_pdbs(self, edir):
         # Iterate over every "on-target" directory in the OFF_TARGET folder:
-        # Get to the right directory for each of the structures in OFF_TARGETs
         os.chdir(edir)
-        # make the full_mut_directory:
-        if os.path.isdir("full_mut_pdbs"):
-            shutil.rmtree("full_mut_pdbs")
-        os.mkdir("full_mut_pdbs")
+        for directory in os.listdir(os.curdir):
+            # Check to make sure it is not a .DS_Store file
+            if directory.startswith("ON_"):
+                os.chdir(edir + "/" + directory)
+            else:
+                continue  # skip all directories that aren't on target directories
+            # make the full_mut_directory (remove if old one is there):
+            if os.path.isdir("full_mut_pdbs"):
+                shutil.rmtree("full_mut_pdbs")
+            os.mkdir("full_mut_pdbs")
+
+            # set the chain names for the dna and rna and protein:
+            rchain = str()  # there will only be one chain
+            dchain = list()  # list of chains
+            protein_string = str()
+            for chain in self.cs_dict[self.structureID]:
+                if self.cs_dict[self.structureID][chain][0] == 'r':
+                    rchain = chain
+                if self.cs_dict[self.structureID][chain][0] == 'd':
+                    dchain.append(chain)
+                # if you find the protein, then create the protein string
+                if self.cs_dict[self.structureID][chain][0] == 'protein':
+                    f = open(os.getcwd() + "/" + chain + ".pdb")
+                    for line in f:
+                        protein_string += line
+                    f.close()
+
+            # Create the mutant pdbs by iterating over the off_combos container of the target that matches the directory:
+            target = int(directory[3:])
+            # Create the rna-on dna-off files:
+            rna_pdb_string = str()
+            # Load the rna_pdb_string:
+            f = open(os.getcwd() + "/" + rchain + ".pdb")
+            for line in f:
+                rna_pdb_string += line
+            f.close()
+            # Get all the mutant dnas:
+            for i in range(self.off_combos[target][0],self.off_combos[target][1]+1):
+                dna_pdb_string = ""
+                for mydna in dchain:
+                    f = open(os.getcwd() + "/" + mydna + "_MUT/" + "d_00" + str(i) + ".pdb")
+                    for line in f:
+                        dna_pdb_string += line
+                    f.close()
+                # Consolidate all the chains into one file:
+                full_out_pdb = open(os.getcwd() + "/" + "full_mut_pdbs/" + "r_00" + str(target) + "_d_00" + str(i) + ".pdb",'w')
+                full_out_pdb.write(rna_pdb_string)
+                full_out_pdb.write(protein_string)
+                full_out_pdb.write(dna_pdb_string)
+                full_out_pdb.close()
+            print("All dna mutants for " + str(target) + " rna created.")
+
+            # Create the rna-off dna-on files:
+            dna_pdb_string = ""
+            # Load the dna_pdb_string:
+            for dna in dchain:
+                f = open(os.getcwd() + "/" + dna + ".pdb")
+                for line in f:
+                    rna_pdb_string += line
+                f.close()
+            # Get all the mutant rnas:
+            for i in range(self.off_combos[target][0], self.off_combos[target][1] + 1):
+                rna_pdb_string = ""
+                f = open(os.getcwd() + "/" + rchain + "_MUT/" + "r_00" + str(i) + ".pdb")
+                for line in f:
+                    rna_pdb_string += line
+                f.close()
+                # Consolidate all the chains into one file:
+                full_out_pdb = open(
+                    os.getcwd() + "/" + "full_mut_pdbs/" + "d_00" + str(target) + "_r_00" + str(i) + ".pdb", 'w')
+                full_out_pdb.write(rna_pdb_string)
+                full_out_pdb.write(protein_string)
+                full_out_pdb.write(dna_pdb_string)
+                full_out_pdb.close()
+            print("All rna mutants for " + str(target) + " dna created.")
+
 
 
 
@@ -178,6 +252,7 @@ class OffMutator:
         new_chain_char = out_dir[-5]
         os.chdir(out_dir)
         for p_file in os.listdir(os.curdir):
+            print(p_file)
             # Create temp file
             if p_file[:2] == "r_" or p_file[:2] == "d_":
                 print("changing file: " + p_file)

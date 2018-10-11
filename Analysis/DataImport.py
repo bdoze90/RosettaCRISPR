@@ -21,7 +21,7 @@ class PoseData:
 
         self.fill_pose_tables()
 
-    # Sets the ID such that it can be queried and set
+    # Sets the ID # of the DNA and RNA sequences in the structure
     def get_ID_from_filename(self):
         # Takes care of any base files that find their way into the program
         if self.pdb_path.find("base"):

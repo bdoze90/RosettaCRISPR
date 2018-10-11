@@ -1,39 +1,72 @@
-"""This file contains the SeqMutator class.  It allows one to input a sequence with ."""
+"""This file contains the SeqMutator class.  It creates the base seq mutations that create the FULL_MUT_PDB files from
+which on-target data can be pulled and off-target sequences can be relaxed and then generated."""
 
 from tempfile import mkstemp
 from shutil import move
 import os
 from RosettaSub import RosettaSingleProcess
+from PDBparse import PDB
 
 
 class SeqMutator:
 
-    def __init__(self, base):
-        self.seq_lists = {'r': "rna_seqs.txt", 'd': "dna_seqs.txt"}
-        self.base_dir = base  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
-        self.new_seqs = list()
+    def __init__(self, base, structure,Step1=True,Step2=True):
+        self.rSequences = ["EMPTY"]
+        self.dSequences = ["EMPTY"]
+        self.grab_seqs(base)
 
-        self.cs_dict = {"4UN3/ChainA": ('r', 0, 81, '', ''),
-                        "4UN3/ChainC": ('d', 0, 'n', 'rc','TGGTATTG'),
-                        "4UN3/ChainD": ('d', 17, 'n', '','TGGTATTG'),
-                        "4UN4/ChainA": ('r', 0, 81, '',''),
-                        "4UN4/ChainC": ('d', 17, 'n', 'rc','TGGTATTG'),
-                        "4UN4/ChainD": ('d', 18, 'n', '','TGGTATTG'),
-                        "4UN4/ChainE": ('d', 0, 17, 'rc',''),
-                        "4UN5/ChainA": ('r', 0, 81, '',''),
-                        "4UN5/ChainC": ('d', 20, 'n', 'rc','TGGTATTG'),
-                        "4UN5/ChainD": ('d', 18, 'n', '','TGGTATTG'),
-                        "4UN5/ChainE": ('d', 0, 17, 'rc',''),
-                        "5FQ5/ChainA": ('r', 0, 81, '',''),
-                        "5FQ5/ChainC": ('d', 19, 'n', 'rc','TGGTATTG'),
-                        "5FQ5/ChainD": ('d', 18, 'n', '','TGGTATTG'),
-                        "5FQ5/ChainE": ('d', 0, 17, 'rc',''),
-                        "4OO8ABC/ChainB": ('r', 0, 'n', '',''),
-                        "4OO8ABC/ChainC": ('d', 0, 'n', 'rc','')
+        self.structureID = structure
+        self.base_dir = base + "/" + structure  # base_pdb should be set to the pdb that is missing the respective DNA or RNA
+
+        # List of all the appropriate indexes for the mutated sequences and crystal structures
+        self.cs_dict = {"4UN3": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', '', '', '', ''),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
+
+                        "4UN4": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "4UN5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "5FQ5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "4OO8ABC": {"ChainB": ('r', 0, 'n', '', ''),
+                                    "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                    "ChainC": ('d', 0, 'n', 'rc', '')}
                         }
 
-        for chain in self.cs_dict:
-            self.read_in_seqs(chain)  # STEP 1: get the RNA/DNA mutation sequences and put them in the SOLO folder
+        for i in range(1,6):
+            ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/"
+            # First thing: Pull apart all the Off-target relaxed files:
+            if Step1:
+                self.pull_apart(ensemble_dir, i)
+            # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
+            if Step2:
+                self.full_mut_pdbs(ensemble_dir)
+
+                # Gets all the sequences from the RNA and DNA text files and puts them into the folders
+
+    def grab_seqs(self, base_directory):
+        R = open(base_directory + "/rna_seqs.txt")
+        for line in R:
+            self.rSequences.append(line[:-1].split("\t")[1].upper())
+        R.close()
+        D = open(base_directory + "/dna_seqs.txt")
+        for line in D:
+            self.dSequences.append(line[:-1].split("\t")[1].upper())
+        D.close()
 
     def read_in_seqs(self, chain_name):
         base_pdb = self.base_dir + chain_name + ".pdb"
@@ -62,6 +95,46 @@ class SeqMutator:
             rr.run_process()
         f.close()
         self.change_chain_name(output_directory)
+
+    def full_mut_pdbs(self, edir):
+        # Iterate over every "on-target" directory in the OFF_TARGET folder:
+        os.chdir(edir)
+        # set the chain names for the dna and rna and protein:
+        rchain = str()  # there will only be one chain
+        dchain = list()  # list of chains
+        protein_string = str()
+        for chain in self.cs_dict[self.structureID]:
+            if self.cs_dict[self.structureID][chain][0] == 'r':
+                rchain = chain
+            if self.cs_dict[self.structureID][chain][0] == 'd':
+                dchain.append(chain)
+            # if you find the protein, then create the protein string
+            if self.cs_dict[self.structureID][chain][0] == 'protein':
+                f = open(os.getcwd() + "/" + chain + ".pdb")
+                for line in f:
+                    protein_string += line
+                f.close()
+
+        rna_pdb_string = str()
+        # Load the rna_pdb_string:
+        f = open(os.getcwd() + "/" + rchain + ".pdb")
+        for line in f:
+            rna_pdb_string += line
+        f.close()
+        dna_pdb_string = ""
+        # Load the dna_pdb_string:
+        for dna in dchain:
+            f = open(os.getcwd() + "/" + dna + ".pdb")
+            for line in f:
+                rna_pdb_string += line
+            f.close()
+        full_out_pdb = open(
+            os.getcwd() + "/" + "FULL_MUT_PDBs/" + "ON_" + str(i) + ".pdb", 'w')
+        full_out_pdb.write(rna_pdb_string)
+        full_out_pdb.write(protein_string)
+        full_out_pdb.write(dna_pdb_string)
+        full_out_pdb.close()
+        print("All rna mutants for " + edir + " created.")
 
 
     # Changes the chain name to be consistent with the new PDB file:
@@ -101,7 +174,6 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed1/")
-SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed2/")
-SeqMutator(base="/Users/brianmendoza/Desktop/RosettaCRISPR_Relaxed3/")
+SeqMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",Step1=False)
+
 

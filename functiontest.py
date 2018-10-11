@@ -5,5 +5,5 @@ import os
 from multiprocessing.pool import ThreadPool
 import subprocess
 
-os.chdir("/Users/brianmendoza/Desktop")
-print(os.getcwd())
+mystring = "ON_001900.pdb"
+print(mystring[3:-4])
