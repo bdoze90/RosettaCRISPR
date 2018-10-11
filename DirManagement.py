@@ -41,6 +41,3 @@ def make_master_dirs():
                 os.mkdir("ON_00" + str(offbase))
 
 
-def make_struct_specific_dirs(struct):
-    os.chdir(base_dir + struct)
-    for

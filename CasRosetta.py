@@ -1,25 +1,27 @@
-"""This file runs the designed Rosetta protocol for a group of PDB files, each with different mutations."""
+"""This file runs the designated Rosetta protocol for a group of PDB files."""
 
 import os
-from RosettaSub import RosettaSubprocess
+from RosettaSub import RosettaSubprocess, RosettaSingleProcess
 
 
 class RosettaBatch:
 
-    def __init__(self):
+    def __init__(self,base,structure,algorithm,batch=True):
         # "/home/trinhlab/Documents/RosettaCRISPR/"
-        self.base_dir = "/home/trinhlab/Documents/RosettaCRISPR_Relaxed2/"
-        self.output_dir = "FULL_MUT_PDBs/"
+        self.base_dir = base + "/" + structure
 
-        # KEY: structure  VALUE: tuple, first is the protein file, second is the RNA directory, third is the list of
-        # DNA directories
-        # This one didn't work in seqmutator:"5FQ5/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
-        self.pdbs_and_dirs = {"4UN3/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT"]),
-                              "4UN4/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
-                              "4UN5/": ("ChainB.pdb", "ChainA_MUT/", ["ChainC_MUT/", "ChainD_MUT", "ChainE_MUT"]),
-                              "4OO8ABC/": ("ChainA.pdb", "ChainB_MUT/", ["ChainC_MUT/"]),
-                              }
+        self.batchmode = batch
 
+        # Algorithm function and inputs dictionary:
+        self.algorithms = {"Scoring": ["score_jd2.default.macosclangrelease",["-in:file:s",'filler', "-out:pdb"]],
+                           "Minimization": ["minimize.default.linuxgccrelease",
+        ["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.001"]],
+                           "Relaxation": ["relax.default.linuxgccrelease",
+        ["-s", 'filler', "nstruct", "1", "relax:default_repeats", "5", "-out:suffix", "_rel"]]}
+
+        self.selected_algorithm = self.algorithms[algorithm]
+
+        # List of the off-target sequences needed for the mutation process
         self.off_combos = {1957: (1900, 1956, 0, 0),
                            2015: (1958, 2014, 0, 0),
                            1899: (1842, 1898, 0, 0),
@@ -29,7 +31,7 @@ class RosettaBatch:
                            2103: (2104, 2136, 0, 0),
                            2137: (2138, 2143, 2252, 2257),
                            2144: (2145, 2162, 0, 0),
-                           2163: (2164, 2202, 0,0),
+                           2163: (2164, 2202, 0, 0),
                            2203: (2204, 2209, 2258, 2263),
                            2210: (2211, 2222, 0, 0),
                            2223: (2224, 2241, 2264, 2272),
@@ -37,78 +39,86 @@ class RosettaBatch:
                            2282: (2283, 2297, 0, 0)
                            }
 
-    def stitch_ON(self, all=True, struct=None):
-        for crystal in self.pdbs_and_dirs:
-            print("Working on on targets for crystal structure: " + crystal)  # Output tracking
-            # Iterate across every rna file in the crystal directory
-            for rna_file in os.listdir(self.base_dir + crystal + self.pdbs_and_dirs[crystal][1]):
-                if rna_file.startswith(".DS_Store"):
-                    continue
-                dna_file_id = "d_" + rna_file[2:]
-                self.single_stitch(crystal, rna_file, dna_file_id, off_flag=False)
+        # List of all the appropriate indexes for the mutated sequences and crystal structures
+        self.cs_dict = {"4UN3": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', '', '', '', ''),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
 
-    def stitch_OFF(self, all=True, struct=None):
-        # Loop to go across each crystal
-        for crystal in self.pdbs_and_dirs:
-            if struct is not None and struct != crystal[:-1]:
-                continue
-            print("Working on off targets for crystal structure: " + crystal)  # Output tracking
-            # Loop through all the on-target sequences to generate the rna_files
-            for target_sequence in self.off_combos:
-                rna_file = "r_00" + str(target_sequence)
-                # Loop through the range of id's to get the dna file ids for off targets
-                for i in range(self.off_combos[1][0],self.off_combos[1][1]):
-                    dna_file_id = "d_00" + str(target_sequence)
-                    self.single_stitch(crystal, rna_file, dna_file_id, off_flag=True)
-                # If there is a second range of off-target dna id's then go through another loop of this range
-                if self.off_combos[1][2] != 0:
-                    for i in range(self.off_combos[1][2], self.off_combos[1][3]):
-                        dna_file_id = "d_00" + str(target_sequence)
-                        self.single_stitch(crystal, rna_file, dna_file_id, off_flag=True)
+                        "4UN4": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 17, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
 
-    # Send in a single structure, r_file, and d_file identification to stitch together
-    def single_stitch(self, structure, r_file, d_file, off_flag):
-        # initiate the file for the final structure:
-        if off_flag:
-            out_file = open(self.base_dir + structure + self.output_dir +
-                            "OFF_" + r_file[2:] + "_" + d_file[2:] + ".pdb", "w")
+                        "4UN5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "5FQ5": {"ChainA": ('r', 0, 81, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 19, 'n', 'rc', 'TGGTATTG'),
+                                 "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
+                                 "ChainE": ('d', 0, 17, 'rc', '')},
+
+                        "4OO8ABC": {"ChainB": ('r', 0, 'n', '', ''),
+                                    "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                    "ChainC": ('d', 0, 'n', 'rc', '')}
+                        }
+
+    def run_ensemble(self,id):
+        os.chdir(self.base_dir + "/Ensemble_" + str(id) + "/OFF_TARGET")
+        for ontarget in os.listdir(os.curdir):
+            if ontarget.startswith("ON_"):  # check to make sure it is not .DS_Store
+                os.chdir(os.getcwd()+ "/" + ontarget + "/full_mut_pdbs")
+                self.run_pdbs_in_directory(os.getcwd())
+
+
+    def run_structure(self):
+        for ensemble in os.listdir(self.base_dir):
+            if ensemble.startswith("Ensemble"):
+                self.run_ensemble(int(ensemble[:-1]))
+
+
+    def run_onTarget(self,targetID,ens_num):
+        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs")
+        self.run_pdbs_in_directory(os.getcwd())
+
+
+    def run_individual(self, pdb_dir_path, pdb_local_name):
+        self.run_pdbs_in_directory(pdb_dir_path,singlePDB=pdb_local_name)
+
+
+
+    # Main function that calls either single or batch mode in RosettaSub to process the pdb files
+    def run_pdbs_in_directory(self, directory, singlePDB=""):
+        if singlePDB:
+            rr = RosettaSingleProcess(self.selected_algorithm[0])
+            self.selected_algorithm[1][1] = singlePDB
+            rr.set_inputs(self.selected_algorithm[1])
+            rr.run_process()
+            return
+
+        pdb_list = list()
+        for file in os.listdir(directory):
+            if file.endswith(".pdb"):
+                pdb_list.append(file)
+        if self.batchmode:
+            rr = RosettaSubprocess(self.selected_algorithm[0],4,pdb_list)
+            # fix this so that the batch is correct
+            rr.set_inputs(self.selected_algorithm[1])
+            rr.run_batch()
         else:
-            out_file = open(self.base_dir + structure + self.output_dir + 'ON_' + r_file[2:], "w")
-        # Change directory to get to the location of the protein chain file
-        os.chdir(self.base_dir + structure)
-        # Open and copy the lines from the protein to the output file
-        pf = open(self.pdbs_and_dirs[structure][0])
-        for line in pf:
-            out_file.write(line)
-        pf.close()
-        # Change directory to get to the location of the rna files
-        os.chdir(self.base_dir + structure + self.pdbs_and_dirs[structure][1])
-        # Open and copy the lines form the rna file passed through to the output file
-        rf = open(r_file)
-        for line in rf:
-            out_file.write(line)
-        rf.close()
-        # Iterate through the dna directories:
-        for dna_directory in self.pdbs_and_dirs[structure][2]:
-            os.chdir(self.base_dir + structure + dna_directory)
-            df = open(d_file)
-            for line in df:
-                out_file.write(line)
-            df.close()
-        # print("Created file with the RNA " + r_file + " and the DNA " + d_file)
-        out_file.close()
+            for pdb in pdb_list:
+                rr = RosettaSingleProcess(self.selected_algorithm[0])
+                self.selected_algorithm[1][1] = pdb
+                rr.set_inputs(self.selected_algorithm[1])
+                rr.run_process()
 
-    def run_pdbs_in_directory(self, file_flag):
-        os.chdir(self.base_dir + self.output_dir)
-        for file in os.listdir(os.curdir):
-            if file.startswith(file_flag):
-                rr = RosettaSubprocess("score_jd2.default.macosclangrelease")
-                rr.set_inputs(["-in:file:s", file, "-out:file:scorefile", "raw_score_output/" + file + ".sc"])
-                rr.run_batch()
 
 
 # Code Execution
-rc = RosettaBatch()
-#rc.stitch_ON()
-rc.stitch_OFF()
-#rc.run_pdbs_in_directory("ON_")
+rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Scoring", batch=False)
+rc.run_onTarget("ON_001899",1)
