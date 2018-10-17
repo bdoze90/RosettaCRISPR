@@ -13,7 +13,9 @@ class PoseData:
         self.dnaID = int()
 
         # The pose table in somewhat query-able form
-        self.PoseTable = dict()
+        self.ProteinPoseTable = dict()
+        self.RNAPoseTable = dict()
+        self.DNAPoseTable = dict()
         # Storage for the labels, weights, and full_pose stats
         self.labels = list()
         self.weights = list()
@@ -38,28 +40,75 @@ class PoseData:
 
     # Function for parsing the Pose table inside the file
     def fill_pose_tables(self):
-        in_pose = False
         f = open(self.pdb_path)
-        for line in f:
-            if in_pose:
-                myarray = line.split()
-                if myarray[0] == 'label':
-                    self.labels = myarray[1:]
-                elif myarray[0] == 'weights':
-                    for item in myarray[1:-1]:
-                        self.weights.append(float(item))
-                elif myarray[0] == 'pose':
-                    for item in myarray[1:]:
-                        self.pose.append(float(item))
-                elif line.startswith('#END'):
-                    break
-                else:
-                    self.PoseTable[myarray[0]] = list()
-                    for item in myarray[1:]:
-                        self.PoseTable[myarray[0]].append(float(item))
-            elif line.startswith("#BEGIN"):  # Start of Pose file
-                in_pose = True
+        while True:
+            line = f.readline()
+            if line.startswith("#BEGIN"):
+                # This chunk gets the first three main lines
+                self.labels = f.readline().split()[1:]
+                self.weights = f.readline().split()[1:-1]
+                self.pose = f.readline().split()[1:]
+                for i in range(len(self.weights)):
+                    self.weights[i] = float(self.weights[i])
+                for i in range(len(self.pose)):
+                    self.pose[i] = float(self.pose[i])
+
+                # This chunk gets the lines for the actual pose
+                while True:
+                    line = f.readline()
+                    if line.find("LowerRNA") != -1:
+                        self.add_line(line,"RNA")
+                        while line.find("UpperRNA") == -1:
+                            line = f.readline()
+                            self.add_line(line,"RNA")
+                    if line.find("LowerDNA") != -1:
+                        self.add_line(line,"DNA")
+                        while line.find("UpperDNA") == -1:
+                            line = f.readline()
+                            self.add_line(line,"DNA")
+                    if line.find("NtermProtein") != -1:
+                        self.add_line(line,"Protein")
+                        while line.find("CtermProtein") == -1:
+                            line = f.readline()
+                            self.add_line(line,"Protein")
+                    if line.startswith("#END_POSE"):
+                        break
+                break
             else:
                 continue
         f.close()
 
+    #  Moves to the function the ability to take a pure string line and add as floats to the dictionary
+    def add_line(self, line, dictionary):
+        id = line.split()[0]
+        numarray = list()
+        for item in line.split()[1:]:
+            numarray.append(float(item))
+        if dictionary == "RNA":
+            self.RNAPoseTable[id] = numarray
+        elif dictionary == "DNA":
+            self.DNAPoseTable[id] = numarray
+        elif dictionary == "Protein":
+            self.ProteinPoseTable[id] = numarray
+
+    def return_cum_pose_values(self, pose):
+        output = list()
+        select_pose = dict()
+        if pose == "RNA":
+            select_pose = self.RNAPoseTable
+        elif pose == "DNA":
+            select_pose = self.DNAPoseTable
+        elif pose == "Protein":
+            select_pose = self.ProteinPoseTable
+        for i in range(len(self.labels)):
+            tot_sum_score = 0
+            for residue in select_pose:
+                tot_sum_score += select_pose[residue][i]
+            output.append(tot_sum_score)
+        return output
+
+
+
+
+#P = PoseData("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/r_001899_d_001844.pdb")
+#print(P.return_cum_pose_values("RNA"))

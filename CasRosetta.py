@@ -14,7 +14,7 @@ class RosettaBatch:
 
         # Algorithm function and inputs dictionary:
         self.algorithms = {"Scoring": ["score_jd2.default.macosclangrelease",["-in:file:s",'filler', "-out:pdb"]],
-                           "Minimization": ["minimize.default.linuxgccrelease",
+                           "Minimization": ["minimize.default.macosclangrelease",
         ["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.001"]],
                            "Relaxation": ["relax.default.linuxgccrelease",
         ["-s", 'filler', "nstruct", "1", "relax:default_repeats", "5", "-out:suffix", "_rel"]]}
@@ -120,5 +120,5 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Scoring", batch=False)
+rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Minimization", batch=False)
 rc.run_onTarget("ON_001899",1)

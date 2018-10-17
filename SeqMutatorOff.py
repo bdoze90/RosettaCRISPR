@@ -223,7 +223,7 @@ class OffMutator:
             for dna in dchain:
                 f = open(os.getcwd() + "/" + dna + ".pdb")
                 for line in f:
-                    rna_pdb_string += line
+                    dna_pdb_string += line
                 f.close()
             # Get all the mutant rnas:
             for i in range(self.off_combos[target][0], self.off_combos[target][1] + 1):
@@ -285,4 +285,4 @@ class OffMutator:
         return retseq
 
 
-O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3")
+O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",Step1=False)
