@@ -10,7 +10,7 @@ from PDBparse import PDB
 
 class OffMutator:
 
-    def __init__(self, base, structureID, Step1=True, Step2=True):
+    def __init__(self, base, structureID, Step1=True, Step2=True, Step3=False):
 
         self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
         self.structureID = structureID
@@ -81,9 +81,8 @@ class OffMutator:
             # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
             if Step2:
                 self.full_mut_pdbs(ensemble_dir)
-
-        #self.RC = RosettaBatch()
-        #RC.stitch_OFF(struct=b_pdb)
+            if Step3:
+                self.truncation(ensemble_dir)
 
 
     # Gets all the sequences from the RNA and DNA text files and puts them into the folders
@@ -240,6 +239,10 @@ class OffMutator:
                 full_out_pdb.write(dna_pdb_string)
                 full_out_pdb.close()
             print("All rna mutants for " + str(target) + " dna created.")
+
+    # FUNCTION #3
+    # This function creates the library of truncated RNAs for the investigation of such scores.
+    # Truncated DNAs are more complicated to create and if the truncation trick works, we can look into this
 
 
 

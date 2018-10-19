@@ -39,6 +39,7 @@ class PDB:
     def return_chain(self,chain_id):
         return self.Chain[chain_id] + self.ter
 
+    # Helper function for the auto_truncate function
     def residue_breakdown(self,chain_ID):
         atoms = self.Chain[chain_ID].split("\n")[:-1]
         first_atom_position = int(atoms[0][22:26])
@@ -63,8 +64,28 @@ class PDB:
             for item in self.Residues[:-i]:
                 ret_string += item
             trunc_list.append(ret_string)
+            self.Residues = []
         return trunc_list
 
 
-#p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/4un3_min_relaxed_0001.pdb")
-#p.auto_truncate("A")
+    # This function reassembles the imported PDB either with a missing chain or with a truncation reassembly
+    def reassemble(self, outdirectory, outid, removechain="E", truncation=True):
+        if truncation:
+            truncs = self.auto_truncate("A")
+            for i in range(len(truncs)):
+                file_string = ""
+                for chain in self.Chain:
+                    if chain == "A":
+                        file_string += truncs[i]
+                    elif chain == removechain:
+                        poo = 1
+                    else:
+                        file_string += self.Chain[chain]
+                f = open(outdirectory + str(outid) + "trunc_" + str(i+1) + ".pdb","w")
+                f.write(file_string + "\n")
+                f.close()
+
+
+for sid in range(1842,1899):
+    p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/d_001899_r_00" + str(sid) + ".pdb")
+    p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/truncs/",sid)

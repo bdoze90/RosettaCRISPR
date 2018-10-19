@@ -86,6 +86,10 @@ class RosettaBatch:
         os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs")
         self.run_pdbs_in_directory(os.getcwd())
 
+    def run_truncation(self,targetID,ens_num):
+        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs/truncs")
+        self.run_pdbs_in_directory(os.getcwd())
+
 
     def run_individual(self, pdb_dir_path, pdb_local_name):
         self.run_pdbs_in_directory(pdb_dir_path,singlePDB=pdb_local_name)
@@ -120,5 +124,5 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Minimization", batch=False)
-rc.run_onTarget("ON_001899",1)
+rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Scoring", batch=False)
+rc.run_truncation("ON_001899",1)
