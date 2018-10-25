@@ -61,7 +61,7 @@ class PDB:
         for i in range(1,21):
             self.residue_breakdown(chain_id)
             ret_string = ""
-            for item in self.Residues[:-i]:
+            for item in self.Residues[i:]:
                 ret_string += item
             trunc_list.append(ret_string)
             self.Residues = []
@@ -81,7 +81,7 @@ class PDB:
                         poo = 1
                     else:
                         file_string += self.Chain[chain]
-                f = open(outdirectory + str(outid) + "trunc_" + str(i+1) + ".pdb","w")
+                f = open(outdirectory + str(outid) + "trunc_" + str(20-i) + ".pdb","w")
                 f.write(file_string + "\n")
                 f.close()
 
