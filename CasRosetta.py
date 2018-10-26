@@ -15,7 +15,7 @@ class RosettaBatch:
         # Algorithm function and inputs dictionary:
         self.algorithms = {"Scoring": ["score_jd2.default.macosclangrelease",["-in:file:s",'filler', "-out:pdb"]],
                            "Minimization": ["minimize.default.macosclangrelease",
-        ["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.001"]],
+        ["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.0001"]],
                            "Relaxation": ["relax.default.linuxgccrelease",
         ["-s", 'filler', "nstruct", "1", "relax:default_repeats", "5", "-out:suffix", "_rel"]]}
 
@@ -87,7 +87,7 @@ class RosettaBatch:
         self.run_pdbs_in_directory(os.getcwd())
 
     def run_truncation(self,targetID,ens_num):
-        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs/truncs")
+        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/Truncs")
         self.run_pdbs_in_directory(os.getcwd())
 
 
@@ -100,7 +100,7 @@ class RosettaBatch:
     def run_pdbs_in_directory(self, directory, singlePDB=""):
         if singlePDB:
             rr = RosettaSingleProcess(self.selected_algorithm[0])
-            self.selected_algorithm[1][1] = singlePDB
+            self.selected_algorithm[1][1] = directory + singlePDB
             rr.set_inputs(self.selected_algorithm[1])
             rr.run_process()
             return

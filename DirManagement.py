@@ -43,7 +43,7 @@ def make_master_dirs():
                 os.mkdir("ON_00" + str(offbase))
 
 def rename_files_after_processing():
-    os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_001899/full_mut_pdbs/truncs")
+    os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_001899/Truncs")
     for pdb in os.listdir(os.curdir):
         if pdb.endswith("0001.pdb"):
             os.rename(pdb,pdb[:-9]+"_scr.pdb")

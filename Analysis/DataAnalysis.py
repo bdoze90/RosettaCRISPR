@@ -6,7 +6,7 @@ from Analysis.DataImport import PoseData
 
 
 def get_dataset(directory,suffix):
-    outfile = "/Users/brianmendoza/Desktop/Rosetta_analysisTruncRNA.txt"
+    outfile = "/Users/brianmendoza/Desktop/RosettaBASEDNA.txt"
     f = open(outfile,'w')
     os.chdir(directory)
     mylabels = True
@@ -20,7 +20,7 @@ def get_dataset(directory,suffix):
                     mylabels = False
                 f.write("\n")
             f.write(pdb + " ")
-            for item in P.return_cum_pose_values("RNA"):
+            for item in P.return_cum_pose_values("DNA"):
                 f.write(str(round(item,4)) + " ")
             f.write("\n")
     f.close()
@@ -46,7 +46,7 @@ class Analysis:
             return self.basedirectory  # need to iterate over ensembles as well
 
 
-get_dataset("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/truncs/","scr.pdb")
+get_dataset("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/","0001.pdb")
 
 
 
