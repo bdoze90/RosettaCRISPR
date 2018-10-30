@@ -5,7 +5,9 @@ import os
 offbases = [1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
 
 # Set the directory to RosettaCRISPR
-base_dir = "/Users/brianmendoza/Dropbox/RosettaCRISPR/"
+base_dir = "/Users/brianmendoza/Desktop/RosettaCRISPR/"
+structure = "4UN3"
+ensemble = "Ensemble_1"
 
 
 def make_master_dirs():
@@ -40,6 +42,11 @@ def make_master_dirs():
             for offbase in offbases:
                 os.mkdir("ON_00" + str(offbase))
 
+def rename_files_after_processing():
+    os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_001899/Truncs")
+    for pdb in os.listdir(os.curdir):
+        if pdb.endswith("0001.pdb"):
+            os.rename(pdb,pdb[:-9]+"_scr.pdb")
 
-def make_struct_specific_dirs(struct):
-    os.chdir(base_dir + struct)f
+
+rename_files_after_processing()

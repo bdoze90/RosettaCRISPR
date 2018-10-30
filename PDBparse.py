@@ -11,6 +11,8 @@ class PDB:
         # Container for the heteroatom chains of individual chains
         self.hetero_hold = {' ': "", 'A': "", 'B': "", 'C': "", 'D': "", 'E': ""}
 
+        self.Residues = list()
+
         # opens the file and calls the line parser
         self.load_file(filename)
 
@@ -37,19 +39,53 @@ class PDB:
     def return_chain(self,chain_id):
         return self.Chain[chain_id] + self.ter
 
-"""def ATOM_parse(l):
-    name = l[:6]
-    serial = int(l[6:11])
-    a_name = l[12:16]
-    altloc = l[16]
-    resName = l[17:20]
-    chainID = l[21]
-    resSeq = l[22:26]
-    iCode = l[26]
-    x = l[30:38]
-    y = l[38:46]
-    z = l[46:54]
-    occupancy = l[54:60]"""
+    # Helper function for the auto_truncate function
+    def residue_breakdown(self,chain_ID):
+        atoms = self.Chain[chain_ID].split("\n")[:-1]
+        first_atom_position = int(atoms[0][22:26])
+        cur_position = first_atom_position
+        curresstring = str()
+        for atom in atoms:
+            if cur_position == int(atom[22:26]):
+                curresstring += atom + "\n"
+            else:
+                self.Residues.append(curresstring)
+                curresstring = atom + "\n"
+                cur_position = int(atom[22:26])
+        self.Residues.append(curresstring)
 
-#p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/4un3_min_relaxed_0001.pdb")
-#print(p.return_chain("A"))
+
+    # Returns a list of all the truncated chains (20bp only) in string format
+    def auto_truncate(self,chain_id):
+        trunc_list = list()
+        for i in range(1,21):
+            self.residue_breakdown(chain_id)
+            ret_string = ""
+            for item in self.Residues[i:]:
+                ret_string += item
+            trunc_list.append(ret_string)
+            self.Residues = []
+        return trunc_list
+
+
+    # This function reassembles the imported PDB either with a missing chain or with a truncation reassembly
+    def reassemble(self, outdirectory, outid, removechain="E", truncation=True):
+        if truncation:
+            truncs = self.auto_truncate("A")
+            for i in range(len(truncs)):
+                file_string = ""
+                for chain in self.Chain:
+                    if chain == "A":
+                        file_string += truncs[i]
+                    elif chain == removechain:
+                        poo = 1
+                    else:
+                        file_string += self.Chain[chain]
+                f = open(outdirectory + str(outid) + "trunc_" + str(20-i) + ".pdb","w")
+                f.write(file_string + "\n")
+                f.close()
+
+
+#for sid in range(1842,1899):
+p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/ON_001899_relaxed_0001.pdb")
+p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/Truncs/",1899)
