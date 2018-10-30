@@ -5,7 +5,8 @@ import os
 import pandas, quandl
 import sklearn
 
-class RosettaData:
+
+class PoseData:
 
     def __init__(self, pdb_name):
         self.mydir = "/Users/brianmendoza/Desktop/RosettaCRISPRMAC/" + pdb_name + "/"
