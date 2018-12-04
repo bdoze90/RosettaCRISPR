@@ -4,6 +4,7 @@
 import os
 from multiprocessing.pool import ThreadPool
 import subprocess
+import numpy
+import math
 
-mystring = "ON_001900.pdb"
-print(mystring[3:-4])
+print(eval("(0.3*3**6)+4"))
