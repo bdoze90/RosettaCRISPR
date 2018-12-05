@@ -2,7 +2,7 @@
 
 import numpy
 import matplotlib
-import random
+import random, operator
 import math
 
 class EvoAlg:
@@ -20,8 +20,9 @@ class EvoAlg:
                           (21,4.45,-2.4,74.1,4)]# This is an example gene pool
         self.operators = "+-*/"
 
-        # This is the current population of individuals.  The key is the Pearson coefficient and the value is the genome.
-        self.population = dict()
+        # This is the current population of individuals.  The first value is the Pearson coefficient
+        # and the second value is the genome.
+        self.population = list()
 
         # This is the values that the algorithm is trying to replicate.
         self.ideal_values = [4,2,8,1.2,10]
@@ -42,7 +43,17 @@ class EvoAlg:
 
     # This function is the main function in which the promising functions are mated together.  Those with higher
     # regression values get a higher chance of pieces of their genome getting passed along.
-    def mating(self):
+    def mating_season(self):
+        # Get the top mates by sorting the population:
+        self.population = sorted(self.population, key=operator.itemgetter[1])
+        pop_cutoff = int(len(self.population)*0.1)
+        for individual in self.population[:pop_cutoff]:
+            partner = self.population[random.randint(0,pop_cutoff)]
+            self.reproduction(individual,partner)
+
+    def reproduction(self,org1, org2):
+
+
 
 
     # This function uses random "epigenetic" markers and operators to create an organism
