@@ -6,5 +6,7 @@ from multiprocessing.pool import ThreadPool
 import subprocess
 import numpy
 import math
+import re
 
-print(eval("(0.3*3**6)+4"))
+mystr = "asloiwe4.12asvei3.02awlef8a"
+print(re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?",mystr))

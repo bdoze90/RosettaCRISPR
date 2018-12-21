@@ -1,6 +1,6 @@
 """Algorithm for processing the data of truncation into a valuable formula for predicting activity."""
 
-import numpy
+import numpy, re
 import matplotlib
 import random, operator
 import math
@@ -9,7 +9,7 @@ class EvoAlg:
 
     def __init__(self,filename):
         self.generations = 100
-        self.mutation_rate = 0.01
+        self.mutation_rate = 0.01  # value must not be bigger than 0.5
         self.carrying_capacity = 50
         self.gene_pool = [(0.4,5,10,51,8),
                           (5,-0.25,57,21,2),
@@ -52,21 +52,60 @@ class EvoAlg:
             self.reproduction(individual,partner)
 
     def reproduction(self,org1, org2):
-
+        if bool(random.getrandbits(1)):
+            org1 = self.splice(org1)
+        if bool(random.getrandbits(1)):
+            org2 = self.splice(org2)
+        self.combine([org1,org2])
 
 
 
     # This function uses random "epigenetic" markers and operators to create an organism
     def combine(self, genes):
         genome = str()
-        for i in range(len(genes)):
+        org_size = random.randint(1,len(genes))  # the size of the organism is generated randomly
+        for i in range(org_size):
+            if org_size == 2:
+                gid = i
+            else:
+                gid = random.randint(0,len(genes))
             a = str(round(random.uniform(0.01,4), 3))
             b = str(round(random.uniform(0.01,4), 3))
-            epigene = "(" + a + "*" + "self.gene_pool[" + str(i) + "]" + "**" + b + ")"
-            operator = self.operators[random.randint(0,3)]
-            genome += epigene + operator
+            epigene = "(" + a + "*" + "self.gene_pool[" + str(gid) + "]" + "**" + b + ")"
+            myoperator = self.operators[random.randint(0,3)]
+            genome += epigene + myoperator
+        self.mutate(genome)
         print(genome)
-        print(eval(genome[:-1]))
+        #print(eval(genome[:-1]))
+
+
+    def mutate(self,genome):
+        mutation_key = random.randint(0,1/self.mutation_rate)
+        # get the locations of the numbers:
+        numbers = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?",genome)
+        number_locs = list()
+        for number in numbers:
+            number_locs.append(genome.find(number))
+        # Go through every character in the genome and figure out if it needs to be mutated
+        for i in range(len(genome)):
+            # skip the parentheses:
+            if genome[i] == "(" or genome[i] == ")":
+                continue
+            mutator = random.randint(0,1/self.mutation_rate)
+            if mutator == mutation_key:
+                print("Mutation created.")
+                # mutate an operator
+                if self.operators.find(genome[i]) != -1:
+                    if genome[i+1] != "*" or genome[i-1] != "*":  # make sure its not an exponent
+                        genome = genome[i:].replace(genome[i],self.operators[random.randint(0,3)])
+                # mutate a number
+                elif i in number_locs:
+                    num_mut = random.uniform(-2.0,2.0)
+                    # how to see if you landed on the number in general not necessarily the first digit?
+
+
+
+
 
 
     def splice(self,genome):

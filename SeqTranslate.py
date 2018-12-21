@@ -122,6 +122,6 @@ class SeqTranslate:
 #S = SeqTranslate()
 #print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
 
-#print(S.decompress64("OUauh",True))
-#print(S.compress("CTGCCAGCAGCAAATCTGTC",64))
+#print(S.decompress64("Lj5Y",False))
+#print(S.compress(3030400,64))
 
