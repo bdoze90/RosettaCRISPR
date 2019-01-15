@@ -1,5 +1,6 @@
 """Has all the necessary functions for parsing PDB files.  When you load a PDB file it will automatically break down
-the chains and the name.  Note: It ignores the Pose output from Rosetta, that is in another class/file."""
+the chains and the name.  Note: It ignores the Pose output from Rosetta, that is in another class/file.
+NOTE: This file has the necessary information to make truncations."""
 
 
 class PDB:
@@ -85,7 +86,12 @@ class PDB:
                 f.write(file_string + "\n")
                 f.close()
 
+# use this for loop for the truncation of the off-target structures
+for sid in range(1900,1957):
+    p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/d_001957"
+            "_r_00" + str(sid) + ".pdb")
+    p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/truncs/",sid)
 
-#for sid in range(1842,1899):
-p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")
-p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/Truncs/",1957)
+
+#p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")
+#p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/Truncs/",1957)
