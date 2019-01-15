@@ -124,5 +124,5 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Scoring", batch=False)
-rc.run_truncation("ON_001899",1)
+rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Minimization", batch=False)
+rc.run_onTarget("ON_001957",1)
