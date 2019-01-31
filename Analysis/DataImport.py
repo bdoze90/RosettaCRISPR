@@ -108,7 +108,13 @@ class PoseData:
         return output
 
 
-
-
-#P = PoseData("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/r_001899_d_001844.pdb")
-#print(P.return_cum_pose_values("RNA"))
+# Quick loop for generating data from a single directory and generating export data:
+directory = "/Volumes/Seagate_Drive/relax_min_ensemble2/"
+f = open("/Users/brianmendoza/Desktop/ontargetexportDNA2.txt","w")
+for file in os.listdir(directory):
+    if file.endswith(".pdb"):
+        print(file)
+        P = PoseData(directory + file)
+        outstr = str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
+        f.write(outstr)
+f.close()
