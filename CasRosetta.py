@@ -13,8 +13,8 @@ class RosettaBatch:
         self.batchmode = batch
 
         # Algorithm function and inputs dictionary:
-        self.algorithms = {"Scoring": ["score_jd2.default.macosclangrelease",["-in:file:s",'filler', "-out:pdb"]],
-                           "Minimization": ["minimize.default.macosclangrelease",
+        self.algorithms = {"Scoring": ["score_jd2.default.linuxgccrelease",["-in:file:s",'filler', "-out:pdb"]],
+                           "Minimization": ["minimize.default.linuxgccrelease",
         ["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.0001"]],
                            "Relaxation": ["relax.default.linuxgccrelease",
         ["-s", 'filler', "nstruct", "1", "relax:default_repeats", "5", "-out:suffix", "_rel"]]}
@@ -86,31 +86,35 @@ class RosettaBatch:
         os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs")
         self.run_pdbs_in_directory(os.getcwd())
 
-    def run_truncation(self,targetID,ens_num):
-        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/Truncs")
-        self.run_pdbs_in_directory(os.getcwd())
-
 
     def run_individual(self, pdb_dir_path, pdb_local_name):
         self.run_pdbs_in_directory(pdb_dir_path,singlePDB=pdb_local_name)
 
+
+    # THIS CAN BE RUN IN BATCH MODE ONLY! This is a direct access to the batchmode process
+    def run_disparate_list(self, pdb_dir_list):
+        rr = RosettaSubprocess(self.selected_algorithm[0], 16, pdb_dir_list)
+        # fix this so that the batch is correct
+        rr.set_inputs(self.selected_algorithm[1])
+        rr.run_batch()
 
 
     # Main function that calls either single or batch mode in RosettaSub to process the pdb files
     def run_pdbs_in_directory(self, directory, singlePDB=""):
         if singlePDB:
             rr = RosettaSingleProcess(self.selected_algorithm[0])
-            self.selected_algorithm[1][1] = directory + singlePDB
+            self.selected_algorithm[1][1] = singlePDB
             rr.set_inputs(self.selected_algorithm[1])
             rr.run_process()
             return
 
         pdb_list = list()
+        os.chdir(directory)
         for file in os.listdir(directory):
             if file.endswith(".pdb"):
                 pdb_list.append(file)
         if self.batchmode:
-            rr = RosettaSubprocess(self.selected_algorithm[0],4,pdb_list)
+            rr = RosettaSubprocess(self.selected_algorithm[0],16,pdb_list)
             # fix this so that the batch is correct
             rr.set_inputs(self.selected_algorithm[1])
             rr.run_batch()
@@ -124,5 +128,14 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Minimization", batch=False)
-rc.run_onTarget("ON_001957",1)
+rc = RosettaBatch("/home/trinhlab/Desktop/RosettaCRISPR","4UN3","Minimization", batch=True)
+#rc.run_pdbs_in_directory("/home/trinhlab/Desktop/RosettaCRISPR/4UN3/Ensemble_2/OFF_TARGET/ON_001899/full_mut_pdbs/")
+input_list = list()
+gcf_dir = "/home/trinhlab/Desktop/RosettaCRISPR/4UN3/Ensemble_2/OFF_TARGET/"
+for directory in os.listdir(gcf_dir):
+    if not directory.startswith(".DS"):
+        os.chdir(gcf_dir + directory)
+    for file in os.listdir(os.curdir):
+        if file.endswith("relaxed_0002.pdb"):
+            input_list.append(os.getcwd() + "/" + file)
+rc.run_disparate_list(input_list)

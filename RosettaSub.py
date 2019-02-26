@@ -16,6 +16,8 @@ class RosettaSubprocess:
         self.next_no = 0
         self.Processes = list()
 
+        self.processes_complete = 0
+
     def start_new(self):
         self.inputs[1] = self.process_list[self.next_no]  # sets the "blank" variable to the appropriate file
         total_bin_dir = self.rosetta_directory + self.program
@@ -30,7 +32,8 @@ class RosettaSubprocess:
     def check_running(self):
         for p in range(len(self.Processes)-1, 0, -1):
             if self.Processes[p].poll() is not None:
-                print("Process has finished.")
+                print("Process has finished.  Adding to completed queue.")
+                self.processes_complete += 1
                 del self.Processes[p]
 
         while (len(self.Processes) < self.max_processes) and (self.next_no < len(self.process_list)):
@@ -39,8 +42,10 @@ class RosettaSubprocess:
     def run_batch(self):
         self.check_running()
         while len(self.Processes) > 0:
-            time.sleep(60)
+            time.sleep(240)
             self.check_running()
+            if self.processes_complete + 1 == len(self.process_list):  # The last process is not deleted in self.Processes
+                break
 
 
 class RosettaSingleProcess:

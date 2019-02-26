@@ -20,10 +20,10 @@ class StructurePrep:
                 self.batch.append(self.base_dir + "FULL_MUT_PDBs/ON_00" + str(offbaseid) + ".pdb")
             self.run_relaxation("hello")
         else:
-            # Setting the files to be processed for all on-targets:
-            for file in os.listdir(self.base_dir + "FULL_MUT_PDBs/"):
+            # Setting the files to be processed for all relaxed on-targets:
+            for file in os.listdir(self.base_dir + "on_target_relaxed/struct_output/"):
                 if file.startswith("ON_"):
-                    self.batch.append(self.base_dir + "FULL_MUT_PDBs/" + file)
+                    self.batch.append(self.base_dir + "on_target_relaxed/struct_output/" + file)
             self.run_minimization("hello")
 
     def run_relaxation(self, filler):
@@ -33,7 +33,7 @@ class StructurePrep:
         rr.run_batch()
 
     def run_minimization(self, filler):
-        os.chdir(self.base_dir+"on_target_minimized/")
+        os.chdir(self.base_dir+"on_target_relaxed/struct_output/")
         cycles = 1  # change this if you want to but this is the standard based on the protocol we developed
         for i in range(cycles):
             rr = RosettaSubprocess("minimize.default.linuxgccrelease", max_p=16, process_list=self.batch)
@@ -41,6 +41,14 @@ class StructurePrep:
             rr.run_batch()
 
 
-S = StructurePrep("relax", "/home/trinhlab/Documents/RosettaCRISPR_Relaxed1/4UN4/")
+S = StructurePrep("relax", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_1/")
+Xp = StructurePrep("relax", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_2/")
+Xw = StructurePrep("relax", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_3/")
+Soda = StructurePrep("relax", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_4/")
+Pop = StructurePrep("relax", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_5/")
 
-
+Sa = StructurePrep("minimize", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_1/")
+Xpa = StructurePrep("minimize", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_2/")
+Xwa = StructurePrep("minimize", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_3/")
+Sodaa = StructurePrep("minimize", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_4/")
+Popam = StructurePrep("minimize", "/home/trinhlab/Desktop/RosettaCRISPR/5F9R/Ensemble_5/")

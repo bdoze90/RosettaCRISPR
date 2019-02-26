@@ -87,10 +87,10 @@ class PDB:
                 f.close()
 
 # use this for loop for the truncation of the off-target structures
-for sid in range(1900,1957):
-    p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/d_001957"
-            "_r_00" + str(sid) + ".pdb")
-    p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/truncs/",sid)
+for sid in range(2164,2203):
+    p = PDB("/home/trinhlab/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_002163/full_mut_pdbs/d_002163"
+            "_r_00" + str(sid) + "_min.pdb")
+    p.reassemble("/home/trinhlab/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_002163/full_mut_pdbs/truncs_from_min/",sid)
 
 
 #p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")
