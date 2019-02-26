@@ -6,8 +6,8 @@ offbases = [1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 22
 
 # Set the directory to RosettaCRISPR
 base_dir = "/home/trinhlab/Desktop/RosettaCRISPR/"
-structure = "4UN3"
-ensemble = "Ensemble_1"
+structure = "5F9R"
+ensemble = "Ensemble_5"
 
 
 def make_master_dirs():
@@ -43,11 +43,11 @@ def make_master_dirs():
                 os.mkdir("ON_00" + str(offbase))
 
 def rename_files_after_processing():
-    os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_001899/full_mut_pdbs/")
+    os.chdir(base_dir + structure + "/" + ensemble + "/on_target_relaxed/struct_output/")
     for pdb in os.listdir(os.curdir):
-        if pdb.endswith("min_0001.pdb"):
+        if pdb.endswith("0001.pdb"):
             #os.remove(pdb)
-            os.rename(pdb,pdb[:-9]+".pdb")
+            os.rename(pdb,pdb[:-13]+".pdb")
 
 
 rename_files_after_processing()
