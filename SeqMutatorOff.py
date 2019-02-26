@@ -64,6 +64,7 @@ class OffMutator:
                         "4OO8ABC":{"ChainB": ('r', 0, 'n', '', ''),
                                    "ChainA": ('protein', 'n', 'n', 'n', 'n'),
                                    "ChainC": ('d', 0, 'n', 'rc', '')}
+                        # saCas9 structures
                         }
 
         # Before doing anything else: pull in the rna and dna sequences into the RNA and DNA containers (lists):
