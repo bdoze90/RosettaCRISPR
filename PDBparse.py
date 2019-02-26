@@ -86,12 +86,24 @@ class PDB:
                 f.write(file_string + "\n")
                 f.close()
 
+    def create_sub_file(self, outdirectory, chains):
+        for chain in chains:
+            mydir = outdirectory + "Chain" + chain + ".pdb"
+            f = open(mydir, 'w')
+            f.write(self.hetero_hold[chain])
+            f.write(self.Chain[chain])
+            f.close()
+
+
 # use this for loop for the truncation of the off-target structures
-for sid in range(1900,1957):
-    p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/d_001957"
-            "_r_00" + str(sid) + ".pdb")
-    p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/truncs/",sid)
+#for sid in range(1900,1957):
+    #p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/d_001957"
+            #"_r_00" + str(sid) + ".pdb")
+    #p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/full_mut_pdbs/truncs/",sid)
 
 
 #p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")
 #p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/Truncs/",1957)
+
+p = PDB("/Volumes/Seagate_Drive/RosettaCRISPR/5F9R/Ensemble_5/5f9r_rel.pdb")
+p.create_sub_file("/Volumes/Seagate_Drive/RosettaCRISPR/5F9R/Ensemble_5/",["A","B","C","D"])

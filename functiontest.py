@@ -8,5 +8,8 @@ import numpy
 import math
 import re
 
-mystr = "asloiwe4.12asvei3.02awlef8a"
-print(re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?",mystr))
+f = open("/Volumes/Seagate_Drive/RosettaCRISPR/rna_seqs2.txt")
+for line in f:
+    print(line)
+
+f.close()
