@@ -41,6 +41,6 @@ class StructurePrep:
             rr.run_batch()
 
 
-S = StructurePrep("relax", "/home/trinhlab/Documents/RosettaCRISPR_Relaxed1/4UN4/")
+S = StructurePrep("minimize", "/Volumes/Seagate_Drive/RosettaCRISPR/4UN3/Ensemble_2/OFF_TARGET/ON_001899/full_mut_pdbs/")
 
 

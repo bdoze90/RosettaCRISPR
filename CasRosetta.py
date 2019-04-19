@@ -87,7 +87,7 @@ class RosettaBatch:
         self.run_pdbs_in_directory(os.getcwd())
 
     def run_truncation(self,targetID,ens_num):
-        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/Truncs")
+        os.chdir(self.base_dir + "/" + "Ensemble_" + str(ens_num) + "/OFF_TARGET/" + targetID + "/full_mut_pdbs/truncs_from_min")
         self.run_pdbs_in_directory(os.getcwd())
 
 
@@ -124,5 +124,19 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Users/brianmendoza/Desktop/RosettaCRISPR","4UN3","Minimization", batch=False)
-rc.run_onTarget("ON_001957",1)
+rc = RosettaBatch("/Volumes/Seagate_Drive/RosettaCRISPR","4UN4","Scoring", batch=False)
+rc.run_truncation("ON_001899",3)
+rc.run_truncation("ON_001957",3)
+rc.run_truncation("ON_002015",3)
+rc.run_truncation("ON_002073",3)
+rc.run_truncation("ON_002074",3)
+rc.run_truncation("ON_002090",3)
+rc.run_truncation("ON_002103",3)
+rc.run_truncation("ON_002137",3)
+rc.run_truncation("ON_002144",3)
+rc.run_truncation("ON_002163",3)
+rc.run_truncation("ON_002203",3)
+rc.run_truncation("ON_002210",3)
+rc.run_truncation("ON_002223",3)
+rc.run_truncation("ON_002242",3)
+rc.run_truncation("ON_002282",3)

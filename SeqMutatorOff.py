@@ -10,10 +10,11 @@ from PDBparse import PDB
 
 class OffMutator:
 
-    def __init__(self, base, structureID, Step1=True, Step2=True, Step3=False):
+    def __init__(self, base, structureID, NA_stat=False, Step1=True, Step2=True, Step3=False):
 
         self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
         self.structureID = structureID
+        self.NA_only = NA_stat
 
         # containers for the mutated sequences.  The first position is the "EMPTY" string to get indexing right.
         self.rSequences = ["EMPTY"]
@@ -235,7 +236,8 @@ class OffMutator:
                 full_out_pdb = open(
                     os.getcwd() + "/" + "full_mut_pdbs/" + "d_00" + str(target) + "_r_00" + str(i) + ".pdb", 'w')
                 full_out_pdb.write(rna_pdb_string)
-                full_out_pdb.write(protein_string)
+                if not self.NA_only:
+                    full_out_pdb.write(protein_string)
                 full_out_pdb.write(dna_pdb_string)
                 full_out_pdb.close()
             print("All rna mutants for " + str(target) + " dna created.")
@@ -288,4 +290,4 @@ class OffMutator:
         return retseq
 
 
-O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",Step1=False)
+O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",NA_stat=True, Step1=False)

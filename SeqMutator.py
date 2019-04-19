@@ -47,19 +47,19 @@ class SeqMutator:
                         "5F9R": {"ChainA": ('r', 1, 116, '', ''),
                                  "ChainB": ('protein', 'n','n','n','n'),
                                  "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')}
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
 
 
                         # Beginning of the saCas9 structures
-                        "5CZZ": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')}
-
-                        "5AXW": {"ChainA": ('r', 1, 116, '', ''),
+                        "5CZZ": {"ChainA": ('r', 0, 'n', '', ''),
                                  "ChainB": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
                                  "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5AXW": {"ChainA": ('r', 0, 'n', '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TTGGGTAG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'TTGGGTAG')},
 
 
                         # Beginning of the Cas12 structures
