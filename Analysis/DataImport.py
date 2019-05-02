@@ -108,7 +108,7 @@ class PoseData:
         return output
 
 
-# Quick loop for generating data from a single directory and generating export data:
+# Loop for getting appropriate data for 
 directory = "/Volumes/Seagate_Drive/relax_min_ensemble2/"
 f = open("/Users/brianmendoza/Desktop/ontargetexportDNA2.txt","w")
 for file in os.listdir(directory):

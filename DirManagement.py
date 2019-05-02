@@ -43,10 +43,14 @@ def make_master_dirs():
                 os.mkdir("ON_00" + str(offbase))
 
 def rename_files_after_processing():
-    os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_001899/Truncs")
-    for pdb in os.listdir(os.curdir):
-        if pdb.endswith("0001.pdb"):
-            os.rename(pdb,pdb[:-9]+"_scr.pdb")
+    for off_base in offbases:
+        os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_00" + str(off_base) + "/full_mut_pdbs/truncs_from_min/")
+        for pdb in os.listdir(os.curdir):
+            if pdb.endswith("0001.pdb") or pdb.endswith("_scr.pdb"):
+                os.rename(pdb,pdb[:-9]+"_scr.pdb")
+            else:
+                os.remove(pdb)
+        print("Completed " + str(off_base))
 
 def delete_non_min_files():
     for off_base in offbases:
@@ -63,5 +67,5 @@ def make_off_target_dirs(pdbn, off_list):
             os.mkdir("/Volumes/Seagate_Drive/RosettaCRISPR/" + pdbn + "/Ensemble_" + str(i) + "/OFF_TARGET/" + "ON_00" + str(off_target))
 
 #make_off_target_dirs("5CZZ",offbases)
-#rename_files_after_processing()
-delete_non_min_files()
+rename_files_after_processing()
+#delete_non_min_files()
