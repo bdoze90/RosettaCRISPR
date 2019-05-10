@@ -120,8 +120,8 @@ class SeqTranslate:
 
 
 S = SeqTranslate()
-print(S.decompress_csf_tuple("DnPb,Dw-=,m"))
+#print(S.decompress_csf_tuple("DnPb,Dw-=,m"))
 
-#print(S.decompress64("BnDWoA",True))
+print(S.decompress64("Bz",False))
 #print(S.compress(3030400,64))
 

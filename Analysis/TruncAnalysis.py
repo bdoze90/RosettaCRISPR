@@ -5,56 +5,63 @@ is coming in in a rapid manner."""
 
 import statistics, numpy
 
-# Data storage structures:
-ExperimentalData = dict()
-ComputationScores = dict()
+# Data storage structures where each item is a TruncStruct:
+Structures = list()
 
 
 def import_data(importfile):
-    exp_data = False
     f = open(importfile)
     for line in f:
         if line.startswith("EXP"):
-            exp_data = True
-        elif exp_data:
-            seqID = line.split()[0]
-            expval = line.split()[1]
-            ExperimentalData[seqID] = expval
+            T = TruncStruct()
+            T.experimental_value = float(line.split()[2])
+            T.ID = line.split()[1]
+            Structures[T.ID] = T
         else:
             datapoint = line.split()
             sequenceID = datapoint[0]
             score = datapoint[10:14]
-            if sequenceID in ComputationScores:
-                for i in range(4):
-                    ComputationScores[sequenceID][i].append(float(score[i]))
-            else:
-                # min ddG, min dG, no min ddG, no min dG
-                ComputationScores[sequenceID] = ([float(score[0])], [float(score[1])], [float(score[2])], [float(score[3])])
+            # min ddG, min dG, no min ddG, no min dG
+            Structures[sequenceID].abs_dG = datapoint[10]
+            Structures[sequenceID].min_ddG = datapoint[11]
+
     f.close()
 
-class Parameters:
+class TruncStruct:
 
     def __init__(self):
-        self.StartValues = float()
-        self.EndValues = float()
-        self.MaxValues = tuple()
-        self.MinValues = tuple()
-        self.ddGSigDeltas = list()
+        self.ID = str()
 
-    def return_array(self):
-        ret_arr = list()
-        ret_arr.append(self.StartValue)
-        ret_arr.append(self.EndValue)
-        ret_arr.append(self.MaxValue[0])
-        ret_arr.append(self.MinValue[0])
-        ret_arr.append(self.MaxValue[0]*self.MaxValue[1])
-        ret_arr.append(self.MaxValue[0]/self.MaxValue[1])
-        ret_arr.append(self.MinValue[0] * self.MinValue[1])
-        ret_arr.append(self.MinValue[0] / self.MinValue[1])
-        for item in self.SigDeltas:
-            ret_arr.append(item[0])
-            ret_arr.append(item[0]*item[1])
-        return ret_arr
+        self.abs_dG = list()
+        self.min_ddG = list()
+        self.min_dG = list()
+        self.nomin_dG = list()
+        self.nomin_ddg = list()
+
+        # Attach the experimental value so that it can be tracked and added when doing analysis
+        self.experimental_value = float()
+
+    # returns the slope of the
+    def get_extreme(self,min_or_max, score_type):
+        myscorevec = list()
+        if score_type == "ABS":
+            myscorevec = self.abs_dG[1:-1]
+        elif score_type == "Min_ddG":
+            myscorevec = self.min_ddG[1:-1]
+        elif score_type == "NoMin_ddG":
+            myscorevec = self.nomin_ddg[1:-1]
+        elif score_type == "Min_dG":
+            myscorevec = self.min_dG[1:-1]
+        elif score_type == "NoMin_dG":
+            myscorevec = self.nomin_dG[1:-1]
+
+        # Now take the chosen vector and return the selected extrema
+        if min_or_max == "MAX":
+            return max(myscorevec)
+        else:
+            return min(myscorevec)
+
+    def get_slope(self,score_type,slope_type):
 
 
 class TruncProcessor:
@@ -65,22 +72,6 @@ class TruncProcessor:
         self.ProcessedStructs = dict()
 
         self.process_structures(Structures)
-
-
-    # Each column in the structures needs to be processed to find the desired features
-    def process_structures(self,Structures):
-        # Get each structure and send to the processed structures dictionary object
-        for item in Structures:
-            # Initialize the processed structures dictionary:
-            self.ProcessedStructs[item] = Parameters()
-            # Process each score in the preprocessed dictionary
-            for score_vec in Structures[item]:
-                self.ProcessedStructs[item].StartValue = score_vec[1]  # 1 because the very first is 0
-                self.ProcessedStructs[item].EndValue = score_vec[-1]
-                # Max and min need to be processed such that they are not the start or end (hence the shortened vectors)
-                self.ProcessedStructs[item].MaxValue = (max(score_vec[2:-1]), numpy.argmax(score_vec[2:-1]))
-                self.ProcessedStructs[item].MinValue = (min(score_vec[2:-1]), numpy.argmin(score_vec[2:-1]))
-                self.ProcessedStructs[item].SigDeltas = self.zscores(score_vec,2)
 
 
 

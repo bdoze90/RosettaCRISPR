@@ -89,3 +89,12 @@ CS_DICT = { "4UN3": {"ChainA": ('r', 0, 81, '', ''),
                      "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
                      "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')}
             }
+
+# THIS IS THE ONLY THING THAT NEEDS TO BE CHANGED WHEN SWITCHING COMPUTERS!!!
+# IDs:
+# MacBookPro 2013: 1
+# Linux Lab Computer: 2
+# MacBookPro 2017: 3
+# BRC Mac Pro: 4
+COMPUTER_ID = 4
+if COMPUTER_ID
