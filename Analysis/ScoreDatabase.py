@@ -28,7 +28,7 @@ class Target:
         self.on_score_min_RNA = float()
 
     def returnallscores(self):
-        for item in 
+        for item in
 
 
 class Score:

@@ -97,4 +97,3 @@ CS_DICT = { "4UN3": {"ChainA": ('r', 0, 81, '', ''),
 # MacBookPro 2017: 3
 # BRC Mac Pro: 4
 COMPUTER_ID = 4
-if COMPUTER_ID

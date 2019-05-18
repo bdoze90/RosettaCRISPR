@@ -107,14 +107,3 @@ class PoseData:
             output.append(tot_sum_score)
         return output
 
-
-# Loop for getting appropriate data for 
-directory = "/Volumes/Seagate_Drive/relax_min_ensemble2/"
-f = open("/Users/brianmendoza/Desktop/ontargetexportDNA2.txt","w")
-for file in os.listdir(directory):
-    if file.endswith(".pdb"):
-        print(file)
-        P = PoseData(directory + file)
-        outstr = str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
-        f.write(outstr)
-f.close()
