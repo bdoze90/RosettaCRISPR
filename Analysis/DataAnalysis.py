@@ -116,15 +116,17 @@ class Analysis:
             f.close()
             self.Ensemble_data.append(E)
     # END IMPORT DATA FUNCTIONS #
-    def align_scores_to_exp(self,scr_index):
+    def align_scores_to_exp(self,scr_index,startrange=1800,endrange=3000):
         arrayexp = list()
         arrayscr = list()
         scores_set = self.Ensemble_data[0].processed_total_scores("RNA")
         for offtarget in scores_set:
-            # check to make sure that both dictionary accessions do not return a key error
-            if offtarget in self.experimental_dict:
-                arrayexp.append(self.experimental_dict[offtarget])
-                arrayscr.append(scores_set[offtarget][scr_index])
+            # check to make sure the offtarget is in the range specified:
+            if startrange < offtarget < endrange:
+                # check to make sure that both dictionary accessions do not return a key error
+                if offtarget in self.experimental_dict:
+                    arrayexp.append(self.experimental_dict[offtarget])
+                    arrayscr.append(scores_set[offtarget][scr_index])
         print(scipy.stats.linregress(arrayexp,arrayscr))
         print(scipy.stats.pearsonr(arrayexp,arrayscr))
 
@@ -140,5 +142,5 @@ class Analysis:
 
 
 A = Analysis("/Users/brianmendoza/Dropbox/Rosetta/TrimmedScores/","4UN4")
-A.align_scores_to_exp(19)
+A.align_scores_to_exp(19,startrange=1899,endrange=1958)
 
