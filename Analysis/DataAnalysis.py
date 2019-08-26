@@ -116,6 +116,8 @@ class Analysis:
             f.close()
             self.Ensemble_data.append(E)
     # END IMPORT DATA FUNCTIONS #
+
+    # Get basic statistics for the total scores
     def align_scores_to_exp(self,scr_index,startrange=1800,endrange=3000):
         arrayexp = list()
         arrayscr = list()
@@ -127,16 +129,14 @@ class Analysis:
                 if offtarget in self.experimental_dict:
                     arrayexp.append(self.experimental_dict[offtarget])
                     arrayscr.append(scores_set[offtarget][scr_index])
-        print(scipy.stats.linregress(arrayexp,arrayscr))
         print(scipy.stats.pearsonr(arrayexp,arrayscr))
 
 
+    # Get the correlations for the truncations
+    def correlation_of_truncation(self, scr_index, start=0, end=3000):
+        arrayexp = list()
+        arraytruncs = list()
 
-
-    # Call this to get the pearson correlation between two sets of data
-    def get_pearson_correlation(self, subset, subsetid, scores):
-        array1 = list()
-        array2 = list()
 
 
 
