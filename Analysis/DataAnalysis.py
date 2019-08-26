@@ -1,6 +1,6 @@
 """File takes in PoseData objects from DataImport and analyzes the data for corrleation."""
 
-import sklearn, scipy.stats, numpy
+import scipy.stats, numpy
 import os
 from Analysis.DataImport import PoseData
 import MasterEnvVariables
@@ -63,7 +63,7 @@ class Ensemble:
         return retdict
 
     def processed_truncation_scores(self, moltype):
-        return "POOP"
+
 
 
 
@@ -142,5 +142,5 @@ class Analysis:
 
 
 A = Analysis("/Users/brianmendoza/Dropbox/Rosetta/TrimmedScores/","4UN4")
-A.align_scores_to_exp(19,startrange=1899,endrange=1958)
+A.align_scores_to_exp(0,startrange=1899,endrange=1958)
 
