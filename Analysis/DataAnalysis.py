@@ -5,6 +5,9 @@ import os
 from Analysis.DataImport import PoseData
 import MasterEnvVariables
 
+# ENSEMBLE CLASS:
+# Stores the information for a single ensemble.  The number of the ensemble is stored in the numID variable
+# Stores information regarding the pose structure scores in dictionaries keyed of the on-target key
 
 class Ensemble:
 
