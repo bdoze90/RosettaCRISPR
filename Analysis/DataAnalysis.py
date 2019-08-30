@@ -13,13 +13,14 @@ class Ensemble:
 
     def __init__(self,number):
         self.numID = number
-        self.dna_tot_struct_scores = dict()  # Dictionary with the score as value and the off-target as the key
-        self.dna_trunc_struct_scores = dict()  # Dictionary with the off-target as key and a list of the truncation scores as value
-        self.rna_tot_struct_scores = dict()
+        # Dictionary with a key of the on-target and another dictionary as a value.
+        # The secondary dictionary has a key of the off-target and a value of a vector of PoseVector objects.
+        self.dna_trunc_struct_scores = dict()
         self.rna_trunc_struct_scores = dict()
-        self.revdna_tot_struct_scores = dict()
-        self.revrna_tot_struct_scores = dict()
 
+
+    # Function add_score:
+    # Takes a line at a time from the file and places the information in the appropriate data structures
     def add_score(self,totalscoreline):
         putat_score = totalscoreline.split(", ")
         if putat_score[2] == "DNA":
