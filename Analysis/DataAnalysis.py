@@ -7,15 +7,17 @@ import MasterEnvVariables
 
 # ENSEMBLE CLASS:
 # Stores the information for a single ensemble.  The number of the ensemble is stored in the numID variable
-# Stores information regarding the pose structure scores in dictionaries keyed of the on-target key
+# Stores information regarding the pose structure scores in dictionaries keyed of the on-target, off-target tuple
 
 class Ensemble:
 
     def __init__(self,number):
         self.numID = number
+        # Dictionaries with the off-target as key and a list of the truncation scores as value
         self.dna_tot_struct_scores = dict()  # Dictionary with the score as value and the off-target as the key
-        self.dna_trunc_struct_scores = dict()  # Dictionary with the off-target as key and a list of the truncation scores as value
-        self.rna_tot_struct_scores = dict()
+        self.dna_trunc_struct_scores = dict()
+        # Dictionaries with the off-target as key
+        self.rna_tot_struct_scores = dict()  # Dictionary with off-target
         self.rna_trunc_struct_scores = dict()
         self.revdna_tot_struct_scores = dict()
         self.revrna_tot_struct_scores = dict()

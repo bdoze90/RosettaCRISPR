@@ -1,5 +1,6 @@
 """This file contains the SeqMutator class.  It creates the base seq mutations that create the FULL_MUT_PDB files from
-which on-target data can be pulled and off-target sequences can be relaxed and then generated."""
+which on-target data can be pulled and off-target sequences can be relaxed and then generated.
+Only use the on-targets for the saCas9 and Cas12 libraries"""
 
 from tempfile import mkstemp
 from shutil import move
@@ -50,43 +51,44 @@ class SeqMutator:
                                  "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
 
 
-                        # Beginning of the saCas9 structures
-                        "5CZZ": {"ChainA": ('r', 0, 'n', '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+                        # Beginning of the saCas9 structures (25bp target sequence for baseline)
+                        "5CZZ": {"ChainB": ('r', 0, 'n', '', ''),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'CTATTCAA'),
+                                 "ChainD": ('d', 'n', 'n', '', 'TTGAATAG')},
 
-                        "5AXW": {"ChainA": ('r', 0, 'n', '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                        "5AXW": {"ChainB": ('r', 0, 'n', '', ''),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 0, 'n', 'rc', 'TTGGGTAG'),
                                  "ChainD": ('d', 'n', 'n', '', 'TTGGGTAG')},
 
 
-                        # Beginning of the Cas12 structures
-                        "5XUU": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+                        # Beginning of the LbCas12 structures (
+                        "5XUU": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TGGAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTCCA')},
 
-                        "5XUS": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+                        "5XUS": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TAAAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTTTA')},
 
-                        "5XUT": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+                        "5XUT": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TAGAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTCTA')},
 
-                        "5XH6": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+                        # Beginning of the AsCas12 structures
+                        "5XH6": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TATAGGACTG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CAGTCCTATA')},
 
-                        "5XH7": {"ChainA": ('r', 1, 116, '', ''),
-                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
-                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')}
+                        "5XH7": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGAGGACTG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CAGTCCTCCA')}
                         }
 
 
@@ -103,11 +105,11 @@ class SeqMutator:
                 # Gets all the sequences from the RNA and DNA text files and puts them into the folders
 
     def grab_seqs(self, base_directory):
-        R = open(base_directory + "/rna_seqs2.txt")
+        R = open(base_directory + "/rna_seqs_ON_Cas12.txt")
         for line in R:
             self.rSequences.append(line[:-1].split("\t")[1].upper())
         R.close()
-        D = open(base_directory + "/dna_seqs.txt")
+        D = open(base_directory + "/dna_seqs_ON_Cas12.txt")
         for line in D:
             self.dSequences.append(line[:-1].split("\t")[1].upper())
         D.close()

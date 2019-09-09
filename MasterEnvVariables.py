@@ -20,6 +20,8 @@ OFF_COMBOS_HSU_SPCAS9 = {1957: (1900, 1956, 0, 0),
 
 OFFBASES_HSU_SPCAS9 = [1899, 1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
 
+OFF_COMBOS_KLEINSTIVER = list()
+
 CS_DICT = { "4UN3": {"ChainA": ('r', 0, 81, '', ''),
                      "ChainB": ('protein', '', '', '', ''),
                      "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),

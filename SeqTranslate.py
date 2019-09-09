@@ -122,6 +122,6 @@ class SeqTranslate:
 S = SeqTranslate()
 #print(S.decompress_csf_tuple("DnPb,Dw-=,m"))
 
-print(S.decompress64("NK58r",True))
+print(S.decompress64("OB/PUH9",True))
 #print(S.compress(3030400,64))
 

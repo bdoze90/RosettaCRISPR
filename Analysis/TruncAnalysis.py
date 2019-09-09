@@ -6,11 +6,11 @@ is coming in in a rapid manner."""
 import statistics, numpy
 
 # Data storage structures where each item is a TruncStruct:
-Structures = list()
+Structures = dict()
 
 
-def import_data(importfile):
-    f = open(importfile)
+def import_data(importdir, struct, ensemble):
+    f = open(importdir +struct+ ensemble + "TrimmedBaseTruncationScores.txt")
     for line in f:
         if line.startswith("EXP"):
             T = TruncStruct()
@@ -26,6 +26,11 @@ def import_data(importfile):
             Structures[sequenceID].min_ddG = datapoint[11]
 
     f.close()
+    y = open(importdir+struct+ensemble+"TrimmedTruncationScores.txt")
+    for line in f:
+        myline = line.split("\t")
+        myline
+        Structures[int(myline[0])].basestruct[]
 
 class TruncStruct:
 
@@ -38,8 +43,13 @@ class TruncStruct:
         self.nomin_dG = list()
         self.nomin_ddg = list()
 
+        self.basestruct = list()
+
         # Attach the experimental value so that it can be tracked and added when doing analysis
         self.experimental_value = float()
+
+    def import_from_trimmer(self,offid):
+
 
     # returns the slope of the
     def get_extreme(self,min_or_max, score_type):
@@ -62,6 +72,7 @@ class TruncStruct:
             return min(myscorevec)
 
     def get_slope(self,score_type,slope_type):
+        return "poop"
 
 
 class TruncProcessor:
@@ -88,7 +99,8 @@ class TruncProcessor:
             print(item)
             print(self.ProcessedStructs[item].return_array())
 
-import_data("/Users/brianmendoza/Desktop/trunc_rawdata.txt")
+import_data("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmedScores/","5F9R", "Ensemble_1")
+
 
 C = TruncProcessor(ComputationScores,ExperimentalData)
 C.all_data()
