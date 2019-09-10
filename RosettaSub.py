@@ -39,6 +39,7 @@ class RosettaSubprocess:
         while (len(self.Processes) < self.max_processes) and (self.next_no < len(self.process_list)):
             self.start_new()
 
+    # Calling this function initializes the calculation
     def run_batch(self):
         self.check_running()
         while len(self.Processes) > 0:

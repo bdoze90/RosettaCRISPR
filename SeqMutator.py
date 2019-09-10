@@ -1,5 +1,6 @@
 """This file contains the SeqMutator class.  It creates the base seq mutations that create the FULL_MUT_PDB files from
-which on-target data can be pulled and off-target sequences can be relaxed and then generated."""
+which on-target data can be pulled and off-target sequences can be relaxed and then generated.
+Only use the on-targets for the saCas9 and Cas12 libraries"""
 
 from tempfile import mkstemp
 from shutil import move
@@ -10,7 +11,7 @@ from PDBparse import PDB
 
 class SeqMutator:
 
-    def __init__(self, base, structure,Step1=True,Step2=True):
+    def __init__(self, base, structure,Step1=True,Step2=True,Step3=True):
         self.rSequences = ["EMPTY"]
         self.dSequences = ["EMPTY"]
         self.grab_seqs(base)
@@ -30,6 +31,7 @@ class SeqMutator:
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
+                        # Crystal structure has lost a portion of the sequence and therefore only good for short guides
                         "4UN5": {"ChainA": ('r', 0, 81, '', ''),
                                  "ChainB": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
@@ -42,62 +44,136 @@ class SeqMutator:
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
-                        "4OO8ABC": {"ChainB": ('r', 0, 'n', '', ''),
-                                    "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                    "ChainC": ('d', 0, 'n', 'rc', '')}
+                        # Needs rna_seqs2.txt b/c of different scaffold RNA
+                        "5F9R": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n','n','n','n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+
+                        # Beginning of the saCas9 structures (25bp target sequence for baseline)
+                        "5CZZ": {"ChainB": ('r', 0, 'n', '', ''),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'CTATTCAA'),
+                                 "ChainD": ('d', 'n', 'n', '', 'TTGAATAG')},
+
+                        "5AXW": {"ChainB": ('r', 0, 'n', '', ''),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TTGGGTAG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'TTGGGTAG')},
+
+
+                        # Beginning of the LbCas12 structures (
+                        "5XUU": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TGGAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTCCA')},
+
+                        "5XUS": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TAAAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTTTA')},
+
+                        "5XUT": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 20, 'rc', 'TAGAGGACG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CGTCCTCTA')},
+
+                        # Beginning of the AsCas12 structures
+                        "5XH6": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),  # crRNA repeat
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TATAGGACTG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CAGTCCTATA')},
+
+                        "5XH7": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),
+                                 "ChainA": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGAGGACTG'),
+                                 "ChainD": ('d', 'n', 'n', '', 'CAGTCCTCCA')}
                         }
 
+
         for i in range(1,6):
-            ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/"
+            ensemble_dir = self.base_dir + "/Ensemble_" + str(i)
             # First thing: Pull apart all the Off-target relaxed files:
             if Step1:
-                self.pull_apart(ensemble_dir, i)
+                self.read_in_seqs(ensemble_dir)
             # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
             if Step2:
-                self.full_mut_pdbs(ensemble_dir)
+                self.full_mut_pdbs(ensemble_dir, Step3)
+            # Third thing: Assemble the NA only crystal structures into the NA_MUT_PDBs folder
 
                 # Gets all the sequences from the RNA and DNA text files and puts them into the folders
 
     def grab_seqs(self, base_directory):
-        R = open(base_directory + "/rna_seqs.txt")
+        R = open(base_directory + "/rna_seqs_ON_Cas12.txt")
         for line in R:
             self.rSequences.append(line[:-1].split("\t")[1].upper())
         R.close()
-        D = open(base_directory + "/dna_seqs.txt")
+        D = open(base_directory + "/dna_seqs_ON_Cas12.txt")
         for line in D:
             self.dSequences.append(line[:-1].split("\t")[1].upper())
         D.close()
 
-    def read_in_seqs(self, chain_name):
-        base_pdb = self.base_dir + chain_name + ".pdb"
-        output_directory = self.base_dir + chain_name + "_MUT" + "/"
-        seq_file = self.seq_lists[self.cs_dict[chain_name][0]]
-        f = open(self.base_dir + seq_file)
-        for line in f:
-            s = line[:-1].split("\t")  # index 0: sequence_id; index 1: sequence for rosetta
-            ix = self.cs_dict[chain_name]
-            # check for addendum:
-            qs = s[1] + ix[4]
-            # check if the 'n' exists then just use the first index:
-            if ix[2] == 'n':
-                seq = qs[ix[1]:]
-                # check for revcomness:
-                if ix[3] == 'rc':
-                    seq = self.revcom(seq)
-            else:
-                seq = qs[ix[1]:ix[2]]  # grabs second index and the length of the sequence for the structure
-                if ix[3] == 'rc':
-                    seq = self.revcom(seq)
-            print(seq)
+    # Function: Generates the new mutated nucleic acid pdb and puts the file into the ChainX_MUT directory
+    def read_in_seqs(self, edir):
+        os.chdir(edir)
+
+        # Generate the subChainPDBs:
+        base_pdb = edir + "/" + self.structureID + "_rel.pdb"
+        P = PDB(base_pdb)
+        for chain in self.cs_dict[self.structureID]:
+            f = open(os.getcwd() + "/" + chain + ".pdb",'w')
+            f.write(P.return_chain(chain[5]))
+            f.close()
+
+        # Generate the library of sequences of subfiles (MUT directories)
+        for chain in self.cs_dict[self.structureID]:
+            if not self.cs_dict[self.structureID][chain][0] == "protein":
+                self.create_new_rna_dnas(chain, edir)
+
+    # Called from above!
+    # Function is called from pull_apart and creates the new sub-pdb chain files for each of the desired mutations
+    def create_new_rna_dnas(self, chain, working_dir):
+        # Iterate across all the sequence ids for on-targets:
+        for i in range(1,len(self.rSequences)):
+            # Process the extra zeros for the filename:
+            outnumber = str(i)
+            for x in range(6-len(str(i))):
+                outnumber = '0' + outnumber
+
+            mysequence = str()
+            outfilename = str()
+            # get the tuple responsible for all chain identifiers:
+            specs = self.cs_dict[self.structureID][chain]
+            # check to see whether the chain is DNA or RNA, then set filename and gather appropriate sequence:
+            if specs[0] == 'd':
+                outfilename = 'd_' + outnumber + ".pdb"
+                if specs[2] == 'n':
+                    mysequence = self.dSequences[i][specs[1]:] + specs[4]
+                else:
+                    mysequence = self.dSequences[i][specs[1]:specs[2]] + specs[4]
+            elif specs[0] == 'r':
+                outfilename = 'r_' + outnumber + ".pdb"
+                if specs[2] == 'n':
+                    mysequence = self.rSequences[i][specs[1]:] + specs[4]
+                else:
+                    mysequence = self.rSequences[i][specs[1]:specs[2]] + specs[4]
+            # check to see if you need to run the sequence through revcom algorithm:
+            if specs[3] == 'rc':
+                mysequence = self.revcom(mysequence)
+
+            # Run the Rosetta Subprocess for each sequence:
             rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
             rr.set_inputs(
-                ["-s", base_pdb, "-seq", seq.lower(), "-o", output_directory + s[0] + ".pdb"])
+                ["-s", working_dir + "/" + chain + ".pdb", "-seq", mysequence.lower(), "-o",
+                 working_dir + "/" + chain + "_MUT/" + outfilename])
             rr.run_process()
-        f.close()
-        self.change_chain_name(output_directory)
+            print(outfilename, i)
+        self.change_chain_name(working_dir + "/" + chain + "_MUT")
 
-    def full_mut_pdbs(self, edir):
-        # Iterate over every "on-target" directory in the OFF_TARGET folder:
+    # Function: Compiles the Chains into a single pdb that can be passed into Rosetta
+    def full_mut_pdbs(self, edir, Step3):
+        # Iterate over every sequence in the rna/dna folder:
         os.chdir(edir)
         # set the chain names for the dna and rna and protein:
         rchain = str()  # there will only be one chain
@@ -115,27 +191,43 @@ class SeqMutator:
                     protein_string += line
                 f.close()
 
-        rna_pdb_string = str()
-        # Load the rna_pdb_string:
-        f = open(os.getcwd() + "/" + rchain + ".pdb")
-        for line in f:
-            rna_pdb_string += line
-        f.close()
-        dna_pdb_string = ""
-        # Load the dna_pdb_string:
-        for dna in dchain:
-            f = open(os.getcwd() + "/" + dna + ".pdb")
+        for i in range(1,len(self.rSequences)):
+            # Process the extra zeros for the filename:
+            outnumber = str(i)
+            for x in range(6 - len(str(i))):
+                outnumber = '0' + outnumber
+
+            rna_pdb_string = str()
+            # Get to the rna directory:
+            os.chdir(edir + "/" + rchain + "_MUT/")
+            # Load the rna_pdb_string:
+            f = open(os.getcwd() + "/" + "r_" + outnumber + ".pdb")
             for line in f:
                 rna_pdb_string += line
             f.close()
-        full_out_pdb = open(
-            os.getcwd() + "/" + "FULL_MUT_PDBs/" + "ON_" + str(i) + ".pdb", 'w')
-        full_out_pdb.write(rna_pdb_string)
-        full_out_pdb.write(protein_string)
-        full_out_pdb.write(dna_pdb_string)
-        full_out_pdb.close()
+            dna_pdb_string = ""
+            # Load the dna_pdb_string:
+            for dna in dchain:
+                os.chdir(edir + "/" + dna + "_MUT/")
+                f = open(os.getcwd() + "/" + "d_" + outnumber + ".pdb")
+                for line in f:
+                    dna_pdb_string += line
+                f.close()
+            full_out_pdb = open(
+                edir + "/" + "FULL_MUT_PDBs/" + "ON_" + outnumber + ".pdb", 'w')
+            full_out_pdb.write(rna_pdb_string)
+            full_out_pdb.write(protein_string)
+            full_out_pdb.write(dna_pdb_string)
+            full_out_pdb.close()
+            if Step3:
+                na_out_pdb = open(
+                    edir + "/" + "NA_MUT_PDBs/" + "ON_" + outnumber + ".pdb", 'w')
+                na_out_pdb.write(rna_pdb_string)
+                na_out_pdb.write(dna_pdb_string)
         print("All rna mutants for " + edir + " created.")
 
+
+    # -------------------------ACCESSORY FUNCTIONS-------------------------------- #
 
     # Changes the chain name to be consistent with the new PDB file:
     def change_chain_name(self, out_dir):
@@ -174,6 +266,6 @@ class SeqMutator:
         return retseq
 
 
-SeqMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",Step1=False)
+SeqMutator("/Volumes/Seagate_Drive/RosettaCRISPR","5F9R")
 
 

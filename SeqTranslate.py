@@ -104,7 +104,7 @@ class SeqTranslate:
         sequence = self.decompress64(sequence, True)
         pam = self.decompress64(pam, True)
         # The for loops fixes the problem of A's not being added to the end because they are removed on compression
-        for i in range(len(sequence),20):
+        for i in range(len(sequence),4):
             sequence += 'A'
         for j in range(len(pam),3):
             pam += 'A'
@@ -119,9 +119,9 @@ class SeqTranslate:
         return newseq
 
 
-#S = SeqTranslate()
-#print(S.decompress_csf_tuple("c,|LLmmwV/-8,t"))
+S = SeqTranslate()
+#print(S.decompress_csf_tuple("DnPb,Dw-=,m"))
 
-#print(S.decompress64("Lj5Y",False))
+print(S.decompress64("OB/PUH9",True))
 #print(S.compress(3030400,64))
 

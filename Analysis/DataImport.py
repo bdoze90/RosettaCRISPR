@@ -107,8 +107,3 @@ class PoseData:
             output.append(tot_sum_score)
         return output
 
-
-
-
-#P = PoseData("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001899/full_mut_pdbs/r_001899_d_001844.pdb")
-#print(P.return_cum_pose_values("RNA"))

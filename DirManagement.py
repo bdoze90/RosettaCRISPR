@@ -2,11 +2,11 @@
 
 import os
 
-offbases = [1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
+offbases = [1899, 1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
 
 # Set the directory to RosettaCRISPR
-base_dir = "/home/trinhlab/Desktop/RosettaCRISPR/"
-structure = "5F9R"
+base_dir = "/Volumes/Seagate_Drive/RosettaCRISPR/"
+structure = "4UN4"
 ensemble = "Ensemble_5"
 
 
@@ -43,11 +43,29 @@ def make_master_dirs():
                 os.mkdir("ON_00" + str(offbase))
 
 def rename_files_after_processing():
-    os.chdir(base_dir + structure + "/" + ensemble + "/on_target_relaxed/struct_output/")
-    for pdb in os.listdir(os.curdir):
-        if pdb.endswith("0001.pdb"):
-            #os.remove(pdb)
-            os.rename(pdb,pdb[:-13]+".pdb")
+    for off_base in offbases:
+        os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_00" + str(off_base) + "/full_mut_pdbs/truncs_from_min/")
+        for pdb in os.listdir(os.curdir):
+            if pdb.endswith("0001.pdb") or pdb.endswith("_scr.pdb"):
+                os.rename(pdb,pdb[:-9]+"_scr.pdb")
+            else:
+                os.remove(pdb)
+        print("Completed " + str(off_base))
 
+def delete_non_min_files():
+    for off_base in offbases:
+        os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_00" + str(off_base) + "/full_mut_pdbs/")
+        for pdb in os.listdir(os.curdir):
+            if pdb.endswith("0001.pdb"):
+                os.rename(pdb,pdb[:-9] + ".pdb")
+            elif pdb.endswith(".pdb") and not pdb.endswith("min.pdb"):
+                os.remove(pdb)
 
+def make_off_target_dirs(pdbn, off_list):
+    for i in range(1,6):
+        for off_target in off_list:
+            os.mkdir("/Volumes/Seagate_Drive/RosettaCRISPR/" + pdbn + "/Ensemble_" + str(i) + "/OFF_TARGET/" + "ON_00" + str(off_target))
+
+#make_off_target_dirs("5CZZ",offbases)
 rename_files_after_processing()
+#delete_non_min_files()
