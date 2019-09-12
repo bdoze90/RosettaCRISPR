@@ -60,25 +60,29 @@ class PDB:
 
 
     # Returns a list of all the truncated chains (20bp only) in string format
-    def auto_truncate(self,chain_id):
+    def auto_truncate(self,chain_id, length, direction):
         trunc_list = list()
-        for i in range(1,21):
+        for i in range(1,length+1):
             self.residue_breakdown(chain_id)
             ret_string = ""
-            for item in self.Residues[i:]:
-                ret_string += item
+            if direction:
+                for item in self.Residues[i:]:
+                    ret_string += item
+            else:
+                for item in self.Residues[:-i]:
+                    ret_string += item
             trunc_list.append(ret_string)
             self.Residues = []
         return trunc_list
 
 
     # This function reassembles the imported PDB either with a missing chain or with a truncation reassembly
-    def reassemble(self, outid, removechain="E", truncation=True):
+    def reassemble(self, outid, seqlen, trunkchain, trunc_dir=True, removechain="E", truncation=True):
         if truncation:
             trunkdir = self.directory + "truncs_from_min/"
             if not os.path.isdir(trunkdir):
                 os.mkdir(trunkdir)
-            truncs = self.auto_truncate("A")
+            truncs = self.auto_truncate(trunkchain, seqlen, trunc_dir)
             for i in range(len(truncs)):
                 file_string = ""
                 for chain in self.Chain:
@@ -88,7 +92,7 @@ class PDB:
                         poo = 1
                     else:
                         file_string += self.Chain[chain]
-                f = open(trunkdir + str(outid) + "trunc_" + str(20-i) + ".pdb","w")
+                f = open(trunkdir + str(outid) + "trunc_" + str(seqlen-i) + ".pdb","w")
                 f.write(file_string + "\n")
                 f.close()
 
@@ -107,7 +111,7 @@ class PDB:
             f.write(self.ter)
         f.close()
 
-# List of tuples for off-target sequence IDs in the Hsu1 dataset:
+"""# List of tuples for off-target sequence IDs in the Hsu1 dataset:
 offbases = [1899, 1957, 2015, 2073, 2074, 2090, 2103, 2137, 2144, 2163, 2203, 2210, 2223, 2242, 2282]
 off_index_Hsu1 = [(1842,1899),(1900,1957),(1958,2015),(2016,2073),(2075,2085),(2091,2103),(2104,2137),(2138,2144),
                   (2145,2163),(2164,2203),(2204,2210),(2211,2223),(2224,2242),(2243,2252),(2283,2297)]
@@ -118,7 +122,7 @@ for i in range(0,15):
         p = PDB("/Volumes/Seagate_Drive/RosettaCRISPR/4UN4/Ensemble_5/OFF_TARGET/ON_00" + str(ob) + "/full_mut_pdbs/",
                 "d_00" + str(ob) + "_r_00" + str(sid) + "_min.pdb")
         p.reassemble(sid)
-        print("completed " + ob + str(sid))
+        print("completed " + ob + str(sid))"""
 
 
 #p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")

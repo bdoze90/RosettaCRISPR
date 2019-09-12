@@ -22,29 +22,29 @@ class SeqMutatorCas12:
         self.combinations = dict()  # relational database with keys as rna sequences and values as dna sequences
         self.on_target_combos = list()  # list of tuples containing the rna and dna combinations that comprise the on-target seqs
         # List of all the appropriate indexes for the mutated sequences and crystal structures
-        self.cs_dict = {"5XUU": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # LbCas12
+        self.cs_dict = {"5XUU": {"ChainB": ('r', 0, 'n', '', ''),  # LbCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 20, 'rc', 'TGGAGGACG'),
+                                 "ChainC": ('d', 4, 'n', 'rc', 'TGGAGGACG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CGTCCTCCA')},
 
-                        "5XUS": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # LbCas12
+                        "5XUS": {"ChainB": ('r', 0, 'n', '', ''),  # LbCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 20, 'rc', 'TAAAGGACG'),
+                                 "ChainC": ('d', 4, 'n', 'rc', 'TAAAGGACG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CGTCCTTTA')},
 
-                        "5XUT": {"ChainB": ('r', 0, 20, '', 'AAUUUCUACUAAGUGUAGAU'),  # LbCas12
+                        "5XUT": {"ChainB": ('r', 0, 'n', '', ''),  # LbCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 20, 'rc', 'TAGAGGACG'),
+                                 "ChainC": ('d', 4, 'n', 'rc', 'TAGAGGACG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CGTCCTCTA')},
 
-                        "5XH6": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),  # AsCas12
+                        "5XH6": {"ChainB": ('r', 0, 'n', '', ''),  # AsCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TATAGGACTG'),
+                                 "ChainC": ('d', 4, 'n', 'rc', 'TATAGGACTG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CAGTCCTATA')},
 
-                        "5XH7": {"ChainB": ('r', 0, 'n', '', 'AAUUUCUACUCUUGUAGAU'),  # AsCas12
+                        "5XH7": {"ChainB": ('r', 0, 'n', '', ''),  # AsCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGAGGACTG'),
+                                 "ChainC": ('d', 4, 'n', 'rc', 'TGGAGGACTG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CAGTCCTCCA')}
                         }
 
@@ -227,11 +227,42 @@ class SeqMutatorCas12:
             rsub = RosettaSubprocess("minimize.default.linuxgccrelease", 16, runlist)
             rsub.set_inputs(["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.0001"])
             rsub.run_batch()
+            # Delete the non-minimized files
+            for file in os.listdir(os.curdir):
+                if file.endswith(".pdb") and not file.endswith("min.pdb"):
+                    os.remove(file)
 
 
-    # STEP 6a: Generate truncations by removing the nucleotides from the back end of the ChainB (RNA) sequence
+    # STEP 6: Generate truncations by removing the nucleotides from either the RNA or DNA sequence
+    def generate_truncations(self, chain, direction):
+        b = self.base_dir + "OFF_TARGET/"
+        # Iterate through all off target groups:
+        for onbase in os.listdir(b):
+            if onbase.startswith("r"):
+                os.chdir(b + onbase)
+                for target in os.listdir(os.curdir):
+                    if target.endswith(".pdb"):
+                        myp = PDB(os.curdir, target)
+                        myp.reassemble(target,23, chain, trunc_dir=direction)
 
-    # STEP 6b: Generate truncations by removing the DNA nucleotides from the frond end of the ChainC (DNA) sequence
+    # STEP 7: Score all the truncation files
+    def score_truncations(self):
+        # Iterate through all of the off target groups accessing the truncation folder:
+        os.chdir(self.base_dir + "OFF_TARGET/")
+        for onbase in os.listdir(self.base_dir + "OFF_TARGET/"):
+            if onbase.startswith("r"):  # Making sure to only pull in the actual directories
+                mylist = list()
+                os.chdir(onbase + "/truncs_from_min")
+                for item in os.listdir(os.curdir):
+                    if item.endswith(".pdb"):
+                        mylist.append(os.getcwd() + "/" + item)
+                R = RosettaSubprocess("score_jd2.default.linuxgccrelease", 16, mylist)
+                R.set_inputs(["-in:file:s",'filler', "-out:pdb", "-out:suffix", "_scr"])
+                R.run_batch()
+            # Delete the non-scored truncation files so they don't cloud memory:
+            for file in os.listdir(os.curdir):
+                if file.endswith(".pdb") and not file.endswith("min.pdb"):
+                    os.remove(file)
 
 
     #### START OF EXTRA FUNCTIONS NEEDED FOR THE PROGRAM TO RUN ####
@@ -277,5 +308,6 @@ SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
 SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
 SMC12.off_target_structure_mutate() # step 4
 SMC12.minimize_off_target() # step 5
-# SMC12.generate_truncations("B", False)
-# SMC12.generate_truncations("C", True)
+SMC12.generate_truncations("B", False) # step 6a
+#SMC12.generate_truncations("C", True)  # step 6b
+SMC12.score_truncations()  # step 7
