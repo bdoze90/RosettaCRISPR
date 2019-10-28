@@ -106,7 +106,8 @@ class RosettaBatch:
             return
 
         pdb_list = list()
-        for file in os.listdir(directory):
+        os.chdir(directory)
+        for file in os.listdir(os.curdir):
             if file.endswith(".pdb"):
                 pdb_list.append(file)
         if self.batchmode:
@@ -124,19 +125,7 @@ class RosettaBatch:
 
 
 # Code Execution
-rc = RosettaBatch("/Volumes/Seagate_Drive/RosettaCRISPR","4UN4","Scoring", batch=False)
-rc.run_truncation("ON_001899",5)
-rc.run_truncation("ON_001957",5)
-rc.run_truncation("ON_002015",5)
-rc.run_truncation("ON_002073",5)
-rc.run_truncation("ON_002074",5)
-rc.run_truncation("ON_002090",5)
-rc.run_truncation("ON_002103",5)
-rc.run_truncation("ON_002137",5)
-rc.run_truncation("ON_002144",5)
-rc.run_truncation("ON_002163",5)
-rc.run_truncation("ON_002203",5)
-rc.run_truncation("ON_002210",5)
-rc.run_truncation("ON_002223",5)
-rc.run_truncation("ON_002242",5)
-rc.run_truncation("ON_002282",5)
+rc = RosettaBatch("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases", "5F9R", "Scoring", batch=False)
+rc.run_pdbs_in_directory("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_3/")
+rc.run_pdbs_in_directory("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_4/")
+rc.run_pdbs_in_directory("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_5/")
