@@ -8,7 +8,7 @@ from Analysis.DataImport import PoseData
 def write_data(myfile, target, mutdir):
     print(myfile)
     retstr = str()
-    outid = str(target) + ", " + str(myfile)[:-8]
+    outid = str(target) + ", " + str(target)
     P = PoseData(mutdir + myfile)
     outstr = outid + ", DNA, " + str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
     retstr += outstr
@@ -19,7 +19,7 @@ def write_data(myfile, target, mutdir):
 # Iterate over all the off-target directories in the ensemble off target directory:
 def trim_total_scores():
     Ensemble = 1
-    Structure = "4UN4"
+    Structure = "5F9R"
     for i in range(0,5):
         directory = "/Volumes/Seagate_Drive/RosettaCRISPR/" + Structure + "/Ensemble_" + str(Ensemble) + "/OFF_TARGET/"
         outputfile = "/Users/brianmendoza/Dropbox/Rosetta/TrimmedScores/" + Structure + "Ensemble_" + str(Ensemble) + "TrimmedTotalScores.txt"
@@ -59,4 +59,14 @@ def fix_4un4_trim():
             y.close()
             f.close()
 
-fix_4un4_trim()
+
+#fix_4un4_trim()
+#trim_total_scores()
+mylist = [1,3,4,5]
+for i in mylist:
+    f = open("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9REnsemble_" + str(i) + "TrimmedBaseTotalScores.txt", 'w')
+    for file in os.listdir("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_" + str(i)):
+        #print(file)
+        if file.endswith("min.pdb"):
+            f.write(write_data(file, file[5:9], "/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_" + str(i) + "/"))
+    f.close()
