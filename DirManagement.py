@@ -53,19 +53,27 @@ def rename_files_after_processing():
         print("Completed " + str(off_base))
 
 def delete_non_min_files():
-    for off_base in offbases:
-        os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_00" + str(off_base) + "/full_mut_pdbs/")
+    #for off_base in offbases:
+        #os.chdir(base_dir + structure + "/" + ensemble + "/OFF_TARGET/" + "ON_00" + str(off_base) + "/full_mut_pdbs/")
+        os.chdir("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/5F9R_on_bases/Ensemble_5")
         for pdb in os.listdir(os.curdir):
             if pdb.endswith("0001.pdb"):
                 os.rename(pdb,pdb[:-9] + ".pdb")
-            elif pdb.endswith(".pdb") and not pdb.endswith("min.pdb"):
-                os.remove(pdb)
+            #elif pdb.endswith(".pdb") and not pdb.endswith("min.pdb"):
+                #os.remove(pdb)
 
 def make_off_target_dirs(pdbn, off_list):
     for i in range(1,6):
         for off_target in off_list:
             os.mkdir("/Volumes/Seagate_Drive/RosettaCRISPR/" + pdbn + "/Ensemble_" + str(i) + "/OFF_TARGET/" + "ON_00" + str(off_target))
 
+def manage_trimmed_files(filepath):
+    outfilestr = str()
+    f = open(filepath)
+    for line in f:
+        myline = line.split(", ")
+
+
 #make_off_target_dirs("5CZZ",offbases)
-rename_files_after_processing()
-#delete_non_min_files()
+#rename_files_after_processing()
+delete_non_min_files()
