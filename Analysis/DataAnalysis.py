@@ -139,7 +139,7 @@ class Ensemble:
             ddG_normalized[item] = [0]
             for i in range(1,len(normalized[item])):
                 ddG_normalized[item].append(normalized[item][i] - normalized[item][i-1])
-        f = open("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/" + onindex + ".txt", 'w')
+        """f = open("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/" + onindex + ".txt", 'w')
         for offindex in normalized:
             f.write(offindex)
             for item in normalized[offindex]:
@@ -148,7 +148,7 @@ class Ensemble:
             for item in ddG_normalized[offindex]:
                 f.write("\t" + str(item))
             f.write("\n")
-        f.close()
+        f.close()"""
 
         return normalized, ddG_normalized
 
@@ -180,7 +180,7 @@ class Analysis:
 
     def get_rosetta_scores(self):
         # iterate through all of the ensembles
-        for i in range(1,2):  # need to fix the other files so that the ensemble comes in correctly
+        for i in range(4,5):  # need to fix the other files so that the ensemble comes in correctly
             # Create an ensemble object to get the scores
             E = Ensemble(i,"5F9R")
             E.gather_scores()
