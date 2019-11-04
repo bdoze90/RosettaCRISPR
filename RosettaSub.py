@@ -40,10 +40,10 @@ class RosettaSubprocess:
             self.start_new()
 
     # Calling this function initializes the calculation
-    def run_batch(self):
+    def run_batch(self,sleeptime=240):
         self.check_running()
         while len(self.Processes) > 0:
-            time.sleep(240)
+            time.sleep(sleeptime)
             self.check_running()
             if self.processes_complete + 1 == len(self.process_list):  # The last process is not deleted in self.Processes
                 break
@@ -52,7 +52,7 @@ class RosettaSubprocess:
 class RosettaSingleProcess:
 
     def __init__(self, program):
-        self.rosetta_directory = "/Users/brianmendoza/rosetta_bin_mac_2018.12.60119_bundle/main/source/bin/"
+        self.rosetta_directory = "/home/trinhlab/Documents/rosetta_bin_linux_2018.12.60119_bundle/main/source/bin/"
         self.program = program
         self.inputs = list()
 

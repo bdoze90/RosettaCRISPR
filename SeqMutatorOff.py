@@ -10,11 +10,10 @@ from PDBparse import PDB
 
 class OffMutator:
 
-    def __init__(self, base, structureID, NA_stat=False, Step1=True, Step2=True, Step3=False):
+    def __init__(self, base, structureID, Step1=True, Step2=True, Step3=False):
 
         self.base_dir = base + structureID + "/"  # This should be the structure directory of the pdb file
         self.structureID = structureID
-        self.NA_only = NA_stat
 
         # containers for the mutated sequences.  The first position is the "EMPTY" string to get indexing right.
         self.rSequences = ["EMPTY"]
@@ -40,7 +39,7 @@ class OffMutator:
 
         # List of all the appropriate indexes for the mutated sequences and crystal structures
         self.cs_dict = {"4UN3": {"ChainA": ('r', 0, 81, '', ''),
-                                 "ChainB": ('protein','','','',''),
+                                 "ChainB": ('protein', '', '', '', ''),
                                  "ChainC": ('d', 0, 'n', 'rc', 'TGGTATTG'),
                                  "ChainD": ('d', 17, 'n', '', 'TGGTATTG')},
 
@@ -50,6 +49,7 @@ class OffMutator:
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
+                        # Crystal structure has lost a portion of the sequence and therefore only good for short guides
                         "4UN5": {"ChainA": ('r', 0, 81, '', ''),
                                  "ChainB": ('protein', 'n', 'n', 'n', 'n'),
                                  "ChainC": ('d', 20, 'n', 'rc', 'TGGTATTG'),
@@ -62,9 +62,49 @@ class OffMutator:
                                  "ChainD": ('d', 18, 'n', '', 'TGGTATTG'),
                                  "ChainE": ('d', 0, 17, 'rc', '')},
 
-                        "4OO8ABC":{"ChainB": ('r', 0, 'n', '', ''),
-                                   "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                   "ChainC": ('d', 0, 'n', 'rc', '')}
+                        # Needs rna_seqs2.txt b/c of different scaffold RNA
+                        "5F9R": {"ChainA": ('r', 0, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+
+                        # Beginning of the saCas9 structures
+                        "5CZZ": {"ChainA": ('r', 0, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5AXW": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        # Beginning of the Cas12 structures
+                        "5XUU": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5XUS": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5XUT": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5XH6": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')},
+
+                        "5XH7": {"ChainA": ('r', 1, 116, '', ''),
+                                 "ChainB": ('protein', 'n', 'n', 'n', 'n'),
+                                 "ChainC": ('d', 0, 'n', 'rc', 'TGGCGATTAG'),
+                                 "ChainD": ('d', 11, 'n', '', 'TGGCGATTAG')}
                         }
 
         # Before doing anything else: pull in the rna and dna sequences into the RNA and DNA containers (lists):
@@ -74,7 +114,7 @@ class OffMutator:
         # self.pull_apart()
         # self.full_mut_pdbs()
         # self.run_Rosetta()
-        for i in range(1,3):
+        for i in range(4,6):
             ensemble_dir = self.base_dir + "Ensemble_" + str(i) + "/OFF_TARGET/"
             # First thing: Pull apart all the Off-target relaxed files:
             if Step1:
@@ -82,13 +122,13 @@ class OffMutator:
             # Second thing: Make the full mutant crystal structures that either need to be scored or need to be minimized
             if Step2:
                 self.full_mut_pdbs(ensemble_dir)
-            if Step3:
-                self.truncation(ensemble_dir)
+            #if Step3:
+                #self.truncation(ensemble_dir)
 
 
     # Gets all the sequences from the RNA and DNA text files and puts them into the folders
     def grab_seqs(self, base_directory):
-        R = open(base_directory + "/rna_seqs.txt")
+        R = open(base_directory + "/rna_seqs_2.txt")
         for line in R:
             self.rSequences.append(line[:-1].split("\t")[1].upper())
         R.close()
@@ -112,7 +152,7 @@ class OffMutator:
                 # get the number of the on-target:
                 onid = int(directory[3:])
                 # dissect the file:
-                myfile =  os.getcwd() + "/" + directory + "_relaxed_000" + str(ens) + ".pdb"
+                myfile =  os.getcwd() + "/" + directory + "_rel.pdb"
                 P = PDB(myfile)
                 for chain in self.cs_dict[self.structureID]:
                     wdir = edir + directory
@@ -151,7 +191,8 @@ class OffMutator:
                 mysequence = self.revcom(mysequence)
 
             # Run the Rosetta Subprocess for each sequence:
-            rr = RosettaSingleProcess("rna_thread.default.macosclangrelease")
+            print(len(mysequence))
+            rr = RosettaSingleProcess("rna_thread.default.linuxgccrelease")
             rr.set_inputs(
                 ["-s", working_dir + "/" + chain + ".pdb", "-seq", mysequence.lower(), "-o",  working_dir + "/" + chain + "_MUT/" + outfilename])
             rr.run_process()
@@ -236,8 +277,7 @@ class OffMutator:
                 full_out_pdb = open(
                     os.getcwd() + "/" + "full_mut_pdbs/" + "d_00" + str(target) + "_r_00" + str(i) + ".pdb", 'w')
                 full_out_pdb.write(rna_pdb_string)
-                if not self.NA_only:
-                    full_out_pdb.write(protein_string)
+                full_out_pdb.write(protein_string)
                 full_out_pdb.write(dna_pdb_string)
                 full_out_pdb.close()
             print("All rna mutants for " + str(target) + " dna created.")
@@ -290,4 +330,4 @@ class OffMutator:
         return retseq
 
 
-O = OffMutator("/Users/brianmendoza/Desktop/RosettaCRISPR/","4UN3",NA_stat=True, Step1=False)
+O = OffMutator("/home/trinhlab/Desktop/RosettaCRISPR/","5F9R")
