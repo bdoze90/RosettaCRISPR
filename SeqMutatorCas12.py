@@ -250,7 +250,7 @@ class SeqMutatorCas12:
                     os.rename(file,file[:-9] + ".pdb")
 
 
-    # STEP 6: Generate truncations by removing the nucleotides from either the RNA or DNA sequence
+    # STEP 6a: Generate truncations by removing the nucleotides from either the RNA or DNA sequence
     def generate_truncations(self, chain, direction):
         b = self.base_dir + "OFF_TARGET/"
         # Iterate through all off target groups:
@@ -261,6 +261,16 @@ class SeqMutatorCas12:
                     if target.endswith("min.pdb"):
                         myp = PDB(os.getcwd() + "/", target)
                         myp.reassemble(target[:-7],23, chain, trunc_dir=direction)
+
+    # STEP 6b: Generate the truncation
+    def generate_base_truncations(self, chain, direction):
+        # Using the basedir as the full muts:
+        b = self.base_dir + "FULL_MUT_PDBs"
+        # Iterate through full muts:
+        for file in os.listdir(b):
+            if file.endswith("rel.pdb"):
+                myp = PDB(b + "/", file)
+                myp.reassemble(file[:-7], 23, chain, trunc_dir=direction)
 
     # STEP 7: Score all the truncation files
     def score_truncations(self):
@@ -286,6 +296,24 @@ class SeqMutatorCas12:
             for file in os.listdir(os.curdir):
                 if file.endswith(".pdb") and not file.endswith("scr.pdb"):
                     os.remove(file)
+
+    def score_truncations_base(self):
+        os.chdir(self.base_dir + "FULL_MUT_PDBs/truncs_from_min")
+        mylist = list()
+        for item in os.listdir(os.curdir):
+            if item.endswith(".pdb"):
+                print(item)
+                mylist.append(os.getcwd() + "/" + item)
+        R = RosettaSubprocess("score_jd2.default.linuxgccrelease", 16, mylist)
+        R.set_inputs(["-in:file:s", 'filler', "-out:pdb", "-out:suffix", "_scr"])
+        R.run_batch(sleeptime=15)
+        # Delete the non-scored truncation files so they don't cloud memory:
+        for file in os.listdir(os.curdir):
+            if file.endswith("scr_0001.pdb"):
+                os.rename(file, file[:-9] + ".pdb")
+        for file in os.listdir(os.curdir):
+            if file.endswith(".pdb") and not file.endswith("scr.pdb"):
+                os.remove(file)
 
 
     #### START OF EXTRA FUNCTIONS NEEDED FOR THE PROGRAM TO RUN ####
@@ -324,13 +352,13 @@ class SeqMutatorCas12:
 
 
 
-SMC12 = SeqMutatorCas12("lbCas12","5","/home/trinhlab/Desktop/RosettaCRISPR/","5XUT")
+SMC12 = SeqMutatorCas12("lbCas12","4","/home/trinhlab/Desktop/RosettaCRISPR/","5XUT")
 SMC12.collect_data()  # step 1
-SMC12.mutate_to_on_target() # step 2
+#SMC12.mutate_to_on_target() # step 2
 #SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
-SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
-SMC12.off_target_structure_mutate() # step 4
-SMC12.minimize_off_target() # step 5
+#SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+#SMC12.off_target_structure_mutate() # step 4
+#SMC12.minimize_off_target() # step 5
 SMC12.generate_truncations("B", False) # step 6a
 #SMC12.generate_truncations("C", True)  # step 6b
-SMC12.score_truncations()  # step 7
+SMC12.score_truncations_base()  # step 7

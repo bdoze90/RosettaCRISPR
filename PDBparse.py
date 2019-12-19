@@ -124,7 +124,7 @@ for i in range(0,15):
         p.reassemble(sid)
         print("completed " + ob + str(sid))"""
 
-
+#for file in os.listdir("/home/trinhlab/Desktop/RosettaCRISPR/5XUS/Ensemble_1/FULL_MUT_PDBs"):
 #p = PDB("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/ON_001957_relaxed_0001.pdb")
 #p.reassemble("/Users/brianmendoza/Desktop/RosettaCRISPR/4UN3/Ensemble_1/OFF_TARGET/ON_001957/Truncs/",1957)
 """directory = "/Volumes/Seagate_Drive/RosettaCRISPR/4UN3/Ensemble_2/OFF_TARGET/ON_001899/full_mut_pdbs/"
