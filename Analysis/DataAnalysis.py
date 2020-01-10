@@ -195,8 +195,17 @@ class Analysis:
                 ddGmax = max(score_set[1][offindex])
                 dGmax = max(score_set[0][offindex])
                 ddGmin = min(score_set[1][offindex])
-                unaveraged_data[offindex] = (ddGmax, ddGmin, score_set[1][offindex].index(ddGmax) , score_set[1][offindex].index(ddGmin),
-                                             dGmax, score_set[0][offindex][0], score_set[0][offindex].index(dGmax))
+                unaveraged_data[offindex] = [ddGmax, ddGmin, score_set[1][offindex].index(ddGmax) , score_set[1][offindex].index(ddGmin),
+                                             dGmax, score_set[0][offindex][0], score_set[0][offindex].index(dGmax)]
+            # Generate Z score information
+            if infotype2 == "Zscore":
+                zvector = ["Z", offindex]
+                ddGZ = list(scipy.stats.zscore(score_set[1][offindex]))
+                for value in ddGZ:
+                    if abs(value) > 1.5:
+                        zvector.append(value)
+                        zvector.append(ddGZ.index(value))
+                print(zvector)
         return unaveraged_data
 
 
@@ -225,9 +234,9 @@ class Analysis:
 
 
 
-A = Analysis("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/","5F9R")
+A = Analysis("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/","5XUS")
 for item in MasterEnvVariables.OFF_COMBOS_HSU_SPCAS9:
-    myprintdict = A.trunc_information(1,"max","DNA",str(item))
+    myprintdict = A.trunc_information(1,"max","DNA",str(item), infotype2="ddG")
     for index in myprintdict:
         print(index, myprintdict[index][0], myprintdict[index][1],
               myprintdict[index][2], myprintdict[index][3], myprintdict[index][4], myprintdict[index][5], myprintdict[index][6])

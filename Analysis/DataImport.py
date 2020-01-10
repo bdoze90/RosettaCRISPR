@@ -48,6 +48,7 @@ class PoseData:
                 self.labels = f.readline().split()[1:]
                 self.weights = f.readline().split()[1:-1]
                 self.pose = f.readline().split()[1:]
+                #print(self.labels, self.weights, self.pose)
                 for i in range(len(self.weights)):
                     self.weights[i] = float(self.weights[i])
                 for i in range(len(self.pose)):

@@ -12,4 +12,5 @@ import random
 
 
 #Q = Qtest()
-print(random.randint(1,2))
+for i in range(0,130):
+    print(random.uniform(0.3,250))
