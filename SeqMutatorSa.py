@@ -57,23 +57,13 @@ class SeqMutatorSa:
                 else:
                     self.combinations[linelist[1]] = [linelist[2]]
 
-    # STEP 2: Mutate the RNAs and DNAs from the base structure into the on targets sequences
+# STEP 2: Mutate the RNAs and DNAs from the base structure into the on targets sequences
     def mutate_to_on_target(self):
         # Run the Rosetta Subprocess for each sequence:
         rr = RosettaSingleProcess("rna_thread.default.linuxgccrelease")
 
         # Create the Base PDB object for extracting chains:
         base_pdb = PDB(self.base_dir, self.structure + ".pdb")
-
-        # Get then mutate Chain D since it is always constant for all structures
-        chainD = open(self.base_dir + "ChainD.pdb", 'w')
-        chainD.write(base_pdb.return_chain("D"))
-        rr.set_inputs(
-            ["-s", self.base_dir + "ChainD.pdb", "-seq", self.cs_dict[self.structure]["ChainD"][4].lower(), "-o",
-             self.base_dir + "ChainD_MUT.pdb"])
-        rr.run_process()
-        # Change the chain name for the file:
-        self.change_chain_name(self.base_dir + "ChainD.pdb", "D")
 
         # Get the rest of the base chains extracted:
         chainB = open(self.base_dir + "ChainB.pdb",'w')
@@ -85,32 +75,38 @@ class SeqMutatorSa:
         chainA = open(self.base_dir + "ChainA.pdb", 'w')
         chainA.write(base_pdb.return_chain("A"))
         chainA.close()
+        chainD = open(self.base_dir + "ChainD.pdb", 'w')
+        chainD.write(base_pdb.return_chain("D"))
+        chainD.close()
 
         # Mutate all the RNA sequences in the on-target-combos:
         for ids in self.on_target_combos:
-            specs = self.cs_dict[self.structure]["ChainB"]
+            rnumid = int(ids[0][2:]) - 200001
+            specs = self.cs_dict[self.structure]["ChainA"]
             if specs[2] == 'n':
-                mysequence = self.rna_seqs[ids[0]][specs[1]:] + specs[4]
+                mysequence = self.rna_seqs[rnumid][specs[1]:] + specs[4]
             else:
-                mysequence = self.rna_seqs[ids[0]][specs[1]:specs[2]] + specs[4]
+                mysequence = self.rna_seqs[rnumid][specs[1]:specs[2]] + specs[4]
             # check to see if you need to run the sequence through revcom algorithm:
             if specs[3] == 'rc':
                 mysequence = self.revcom(mysequence)
+            print(len(mysequence))
             rr.set_inputs(
-                ["-s", self.base_dir + "ChainB.pdb", "-seq", mysequence.lower(), "-o",
-                 self.base_dir + "ChainB_MUT/"+ ids[0] + ".pdb"])
+                ["-s", self.base_dir + "ChainA.pdb", "-seq", mysequence.lower(), "-o",
+                 self.base_dir + "ChainA_MUT/"+ ids[0] + ".pdb"])
             rr.run_process()
 
             # Change the chain name for the file:
-            self.change_chain_name(self.base_dir + "ChainB_MUT/"+ ids[0] + ".pdb", "B")
+            self.change_chain_name(self.base_dir + "ChainA_MUT/"+ ids[0] + ".pdb", "A")
 
         # Mutate the DNA sequences in the on-target-combos:
         for ids in self.on_target_combos:
+            dnumid = int(ids[1][2:]) -200001
             specs = self.cs_dict[self.structure]["ChainC"]
             if specs[2] == 'n':
-                mysequence = self.dna_seqs[ids[1]][specs[1]:] + specs[4]
+                mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
             else:
-                mysequence = self.dna_seqs[ids[1]][specs[1]:specs[2]] + specs[4]
+                mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
             # check to see if you need to run the sequence through revcom algorithm:
             if specs[3] == 'rc':
                 mysequence = self.revcom(mysequence)
@@ -121,13 +117,31 @@ class SeqMutatorSa:
             # Change the chain name for the file:
             self.change_chain_name(self.base_dir + "ChainC_MUT/" + ids[1] + ".pdb", "C")
 
+        # Mutate the adjacent DNA sequences in the on-target-combos:
+        for ids in self.on_target_combos:
+            dnumid = int(ids[1][2:]) -200001
+            specs = self.cs_dict[self.structure]["ChainD"]
+            if specs[2] == 'n':
+                mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
+            else:
+                mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
+            # check to see if you need to run the sequence through revcom algorithm:
+            if specs[3] == 'rc':
+                mysequence = self.revcom(mysequence)
+            rr.set_inputs(
+                ["-s", self.base_dir + "ChainD.pdb", "-seq", mysequence.lower(), "-o",
+                 self.base_dir + "ChainD_MUT/" + ids[1] + ".pdb"])
+            rr.run_process()
+            # Change the chain name for the file:
+            self.change_chain_name(self.base_dir + "ChainD_MUT/" + ids[1] + ".pdb", "D")
+
         # Consolidating the mutated structures into full mutated PDB files:
         for combo in self.on_target_combos:
-            a = self.base_dir + "ChainA.pdb"
+            a = self.base_dir + "ChainB.pdb"
             chains = [a]
-            chains.append(self.base_dir + "ChainB_MUT/" + combo[0] + ".pdb")
+            chains.append(self.base_dir + "ChainA_MUT/" + combo[0] + ".pdb")
             chains.append(self.base_dir + "ChainC_MUT/" + combo[1] + ".pdb")
-            chains.append(self.base_dir + "ChainD_MUT.pdb")
+            chains.append(self.base_dir + "ChainD_MUT/" + combo[1] + ".pdb")
             with open(self.base_dir + "FULL_MUT_PDBs/" + combo[0] + "-" + combo[1] + ".pdb", 'wb') as wfd:
                 for f in chains:
                     with open(f, 'rb') as fd:
@@ -153,32 +167,46 @@ class SeqMutatorSa:
         else:
             rsub.set_inputs(["-s", 'filler', "-out:suffix", "min", "-run:min_tolerance", "0.0001"])
         rsub.run_batch()
+        # remove the numbering:
+        for target in os.listdir(os.curdir):
+            if target.endswith("0001.pdb"):
+                os.rename(os.getcwd() + "/" + target, os.getcwd() + "/" + target[:-9] + ".pdb")
 
 
     # STEP 4: Using the relaxed structure from the fully mutated structures, mutate all the dna sequences in the list,
     # while also creating the directories for all the off-targets in the OFF_TARGET folder.
     def off_target_structure_mutate(self):
         # Create the directories for storing the mutated files
-        for rseq in self.rna_seqs:
-            os.mkdir(self.base_dir + "OFF_TARGET/" + rseq)
+        for i in range(len(self.rna_seqs)):
+            if not os.path.isdir(self.base_dir + "OFF_TARGET/r_" + str(200001+ i)):
+                os.mkdir(self.base_dir + "OFF_TARGET/r_" + str(200001 + i))
         # Obtain the sequence from ChainC (The DNA that needs to be changed) for the mutation
-        for targetfile in os.listdir(self.base_dir + "FULL_MUT_PDBs/"):
-            rnaid = targetfile[0:8]
+        for rnaid in self.combinations:
+            #search for the corresponding DNAid
+            cordna = str()
+            for item in self.on_target_combos:
+                if item[0] == rnaid:
+                    cordna = item[1]
+            targetfile = rnaid + "-" + cordna + "_rel.pdb"  # change to _min if not doing off-relaxation
             target_pdb = PDB(self.base_dir + "FULL_MUT_PDBs/", targetfile)
-            DNAchain = open(self.base_dir + "FULL_MUT_PDBs/" + "tempChainC.pdb")
-            DNAchain.write(target_pdb.return_chain("C"))
-            DNAchain.close()
+            DNAchain1 = open(self.base_dir + "FULL_MUT_PDBs/" + "tempChainC.pdb", "w")
+            DNAchain1.write(target_pdb.return_chain("C"))
+            DNAchain1.close()
+            DNAchain2 = open(self.base_dir + "FULL_MUT_PDBs/" + "tempChainD.pdb", "w")
+            DNAchain2.write(target_pdb.return_chain("D"))
+            DNAchain2.close()
 
             # Initialize the Rosetta mutator algorithm:
             rr = RosettaSingleProcess("rna_thread.default.linuxgccrelease")
 
             # Mutate the DNA to the respective off target sequences:
             for dnaid in self.combinations[rnaid]:
+                dnumid = int(dnaid[2:]) - 200001
                 specs = self.cs_dict[self.structure]["ChainC"]
                 if specs[2] == 'n':
-                    mysequence = self.dna_seqs[dnaid][specs[1]:] + specs[4]
+                    mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
                 else:
-                    mysequence = self.dna_seqs[dnaid][specs[1]:specs[2]] + specs[4]
+                    mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
                 # check to see if you need to run the sequence through revcom algorithm:
                 if specs[3] == 'rc':
                     mysequence = self.revcom(mysequence)
@@ -189,22 +217,44 @@ class SeqMutatorSa:
                 # Change the chain name for the file:
                 self.change_chain_name(self.base_dir + "ChainC_MUT/" + dnaid + ".pdb", "C")
 
+            # Mutate the adjacent DNA to the respective off target sequences:
+            for dnaid in self.combinations[rnaid]:
+                dnumid = int(dnaid[2:]) - 200001
+                specs = self.cs_dict[self.structure]["ChainD"]
+                if specs[2] == 'n':
+                    mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
+                else:
+                    mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
+                # check to see if you need to run the sequence through revcom algorithm:
+                if specs[3] == 'rc':
+                    mysequence = self.revcom(mysequence)
+                rr.set_inputs(
+                    ["-s", self.base_dir + "FULL_MUT_PDBs/tempChainD.pdb", "-seq", mysequence.lower(), "-o",
+                     self.base_dir + "ChainD_MUT/" + dnaid + ".pdb"])
+                rr.run_process()
+                # Change the chain name for the file:
+                self.change_chain_name(self.base_dir + "ChainD_MUT/" + dnaid + ".pdb", "D")
+
                 # Reassemble the file
                 f = open(self.base_dir + "OFF_TARGET/" + rnaid + "/" + rnaid + "-" + dnaid + ".pdb",'w')
                 f.write(target_pdb.return_chain("A"))
                 f.write(target_pdb.return_chain("B"))
-                with open(self.base_dir + "FULL_MUT_PDBs/tempChainC.pdb", 'rb') as fd:
-                    shutil.copyfileobj(fd, f)
-                f.write(target_pdb.return_chain("D"))
+                with open(self.base_dir + "FULL_MUT_PDBs/tempChainC.pdb", 'r') as fd:
+                    content = fd.read()
+                    f.write(content)
+                with open(self.base_dir + "FULL_MUT_PDBs/tempChainD.pdb", 'r') as fd:
+                    content = fd.read()
+                    f.write(content)
 
 
     # STEP 5: Minimize all the off target structures across all the directories of off targets
     def minimize_off_target(self):
-        runlist = list()
-        os.chdir(self.base_dir + "OFF_TARGET/")
+        odir = self.base_dir + "OFF_TARGET/"
         # Iterate across all the off target groups
-        for onbase in os.listdir(os.curdir):
-            os.chdir(onbase)
+        for onbase in os.listdir(odir):
+            print(onbase)
+            runlist = []
+            os.chdir(odir + onbase)
             for offstruct in os.listdir(os.curdir):
                 # Make sure not to open a .DS_Store
                 if offstruct.endswith(".pdb"):
@@ -214,11 +264,11 @@ class SeqMutatorSa:
             rsub.run_batch()
             # Delete the non-minimized files
             for file in os.listdir(os.curdir):
-                if file.endswith(".pdb") and not file.endswith("min.pdb"):
-                    os.remove(file)
+                if file.endswith("min_0001.pdb"):
+                    os.rename(file,file[:-9] + ".pdb")
 
 
-    # STEP 6: Generate truncations by removing the nucleotides from either the RNA or DNA sequence
+    # STEP 6a: Generate truncations by removing the nucleotides from either the RNA or DNA sequence
     def generate_truncations(self, chain, direction):
         b = self.base_dir + "OFF_TARGET/"
         # Iterate through all off target groups:
@@ -226,28 +276,61 @@ class SeqMutatorSa:
             if onbase.startswith("r"):
                 os.chdir(b + onbase)
                 for target in os.listdir(os.curdir):
-                    if target.endswith(".pdb"):
-                        myp = PDB(os.curdir, target)
-                        myp.reassemble(target,23, chain, trunc_dir=direction)
+                    if target.endswith("min.pdb"):
+                        myp = PDB(os.getcwd() + "/", target)
+                        myp.reassemble(target[:-7],20, chain, trunc_dir=direction)
+
+    # STEP 6b: Generate truncations of the base files (relaxed not minimized) in the FullMut folder
+    def generate_base_truncations(self, chain, direction):
+        b = self.base_dir + "FULL_MUT_PDBs"
+        # Iterate through full muts:
+        for file in os.listdir(b):
+            if file.endswith("rel.pdb"):
+                myp = PDB(b + "/", file)
+                myp.reassemble(file[:-7], 20, chain, trunc_dir=direction)
 
     # STEP 7: Score all the truncation files
     def score_truncations(self):
         # Iterate through all of the off target groups accessing the truncation folder:
-        os.chdir(self.base_dir + "OFF_TARGET/")
         for onbase in os.listdir(self.base_dir + "OFF_TARGET/"):
+            os.chdir(self.base_dir + "OFF_TARGET/")
             if onbase.startswith("r"):  # Making sure to only pull in the actual directories
                 mylist = list()
+                if not os.path.isdir(onbase + "/truncs_from_min"):
+                    continue
                 os.chdir(onbase + "/truncs_from_min")
                 for item in os.listdir(os.curdir):
                     if item.endswith(".pdb"):
+                        print(item)
                         mylist.append(os.getcwd() + "/" + item)
                 R = RosettaSubprocess("score_jd2.default.linuxgccrelease", 16, mylist)
                 R.set_inputs(["-in:file:s",'filler', "-out:pdb", "-out:suffix", "_scr"])
-                R.run_batch()
+                R.run_batch(sleeptime=15)
             # Delete the non-scored truncation files so they don't cloud memory:
             for file in os.listdir(os.curdir):
-                if file.endswith(".pdb") and not file.endswith("min.pdb"):
+                if file.endswith("scr_0001.pdb"):
+                    os.rename(file,file[:-9] + ".pdb")
+            for file in os.listdir(os.curdir):
+                if file.endswith(".pdb") and not file.endswith("scr.pdb"):
                     os.remove(file)
+
+    def score_truncations_base(self):
+        os.chdir(self.base_dir + "FULL_MUT_PDBs/truncs_from_min")
+        mylist = list()
+        for item in os.listdir(os.curdir):
+            if item.endswith(".pdb"):
+                print(item)
+                mylist.append(os.getcwd() + "/" + item)
+        R = RosettaSubprocess("score_jd2.default.linuxgccrelease", 16, mylist)
+        R.set_inputs(["-in:file:s", 'filler', "-out:pdb", "-out:suffix", "_scr"])
+        R.run_batch(sleeptime=15)
+        # Delete the non-scored truncation files so they don't cloud memory:
+        for file in os.listdir(os.curdir):
+            if file.endswith("scr_0001.pdb"):
+                os.rename(file, file[:-9] + ".pdb")
+        for file in os.listdir(os.curdir):
+            if file.endswith(".pdb") and not file.endswith("scr.pdb"):
+                os.remove(file)
 
 
     #### START OF EXTRA FUNCTIONS NEEDED FOR THE PROGRAM TO RUN ####
@@ -285,14 +368,13 @@ class SeqMutatorSa:
 
 
 
-
-SMC12 = SeqMutatorCas12("lbCas12","1","/home/trinhlab/Desktop/RosettaCRISPR/","5XUS")
-SMC12.collect_data()  # step 1
-SMC12.mutate_to_on_target() # step 2
-SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
-SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
-SMC12.off_target_structure_mutate() # step 4
-SMC12.minimize_off_target() # step 5
-SMC12.generate_truncations("B", False) # step 6a
+SMCa9 = SeqMutatorSa("saCas9","1","/home/trinhlab/Desktop/RosettaCRISPR/","5CZZ")
+SMCa9.collect_data()  # step 1
+SMCa9.mutate_to_on_target() # step 2
+SMCa9.create_on_targets("relax.default.linuxgccrelease") # step 3a
+SMCa9.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+SMCa9.off_target_structure_mutate() # step 4
+SMCa9.minimize_off_target() # step 5
+SMCa9.generate_truncations("B", False) # step 6a
 #SMC12.generate_truncations("C", True)  # step 6b
-SMC12.score_truncations()  # step 7
+SMCa9.score_truncations()  # step 7

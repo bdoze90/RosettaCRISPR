@@ -52,7 +52,7 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
     f = open(outputfile4, 'w')
     truncmutdir = fullmutdir + "truncs_from_min/"
     for myfile in os.listdir(truncmutdir):
-        if myfile.endswith("scr_0001.pdb"):
+        if myfile.endswith("scr.pdb"):
             f.write(write_data(myfile, truncmutdir))
     f.close()
 
@@ -82,7 +82,6 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
             truncmutdir = fullmutdir + directory + "/truncs_from_min/"
             # check to make sure there even exists any off targets:
             if os.path.isdir(truncmutdir):
-                print("hello")
                 for myfile in os.listdir(truncmutdir):
                     if myfile.endswith("scr.pdb"):
                         f.write(write_data(myfile, truncmutdir))
@@ -101,8 +100,8 @@ def fix_4un4_trim():
             f.close()
 
 
-structure = "5XUS"
-offbaselist = MasterEnvVariables.OFFBASES["lbCas12"]
+structure = "5F9R"
+offbaselist = MasterEnvVariables.OFFBASES["spCas9"]
 mylist = [1]  # The ensembles that you want to investigate
 for i in mylist:
     trim_total_scores(structure, offbaselist, i)

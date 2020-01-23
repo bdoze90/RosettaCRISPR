@@ -33,7 +33,7 @@ class Ensemble:
         f = open(base_dir_file_pre + "TrimmedTruncationScores.txt")
         for line in f:
             putat_score = line.split(", ")
-            if putat_score[2] == "DNA":
+            if putat_score[3] == "DNA":
                 self.add_off_score(self.dna_off_scores, putat_score)
             else:
                 self.add_off_score(self.rna_off_scores, putat_score)
@@ -51,10 +51,11 @@ class Ensemble:
         z = open(base_dir_file_pre + "TrimmedBaseTruncationScores.txt")
         for line in z:
             putat_score = line.split(", ")
-            if putat_score[2] == "DNA":
+            if putat_score[3] == "DNA":
                 self.add_on_score(self.dna_on_scores, putat_score)
             else:
                 self.add_on_score(self.rna_on_scores, putat_score)
+        z.close()
         # Gather the full structure score for the base structure and add them to the on scores dictionary
         t = open(base_dir_file_pre + "TrimmedBaseTotalScores.txt")
         for line in t:
@@ -63,12 +64,13 @@ class Ensemble:
                 self.add_on_score(self.dna_on_scores, putat_score, full=True)
             else:
                 self.add_on_score(self.rna_on_scores, putat_score, full=True)
+        t.close()
 
 
 
     # Sub-function for above to process the decision tree of where to add the score
     def add_off_score(self, score_dict, putat_score, full=False):
-        offindex = putat_score[1][0:4]  # this removes the 00 from the front
+        offindex = putat_score[1]  # this removes the 00 from the front
         if full:
             offindex = str(int(putat_score[1]))
         onindex = str(int(putat_score[0]))
@@ -77,17 +79,18 @@ class Ensemble:
             # Check to see if the OFF ID has been initialized:
             if offindex not in score_dict[onindex]:
                 score_dict[onindex][offindex] = [None] * 20
-                score_dict[onindex][offindex][int(putat_score[1][putat_score[1].find("_") + 1:]) - 1] = putat_score[3:]
+                print(putat_score[1], putat_score[2])
+                score_dict[onindex][offindex][int(putat_score[2]) - 1] = putat_score[4:]
             # place the list of scores in the correct index
             else:
                 if full:
                     score_dict[onindex][offindex].append(putat_score[3:])
                 else:
-                    score_dict[onindex][offindex][int(putat_score[1][putat_score[1].find("_") + 1:]) - 1] = putat_score[3:]
+                    score_dict[onindex][offindex][int(putat_score[2]) - 1] = putat_score[4:]
         elif not full:
             score_dict[onindex] = dict()
             score_dict[onindex][offindex] = [None] * 20
-            score_dict[onindex][offindex][int(putat_score[1][putat_score[1].find("_") + 1:]) - 1] = putat_score[3:]
+            score_dict[onindex][offindex][int(putat_score[2]) - 1] = putat_score[4:]
 
     # Subfunction for above gather_scores function
     def add_on_score(self, score_dict, putat_score, full=False):
@@ -97,17 +100,17 @@ class Ensemble:
             # Check to see if the OFF ID has been initialized:
             if onindex not in score_dict:
                 score_dict[onindex] = [None] * 20  # Not 20 cuz the last comes from the tot scores file
-                score_dict[onindex][int(putat_score[1][putat_score[1].find("trunc_") + 6:]) - 1] = putat_score[3:]
+                score_dict[onindex][int(putat_score[2])- 1] = putat_score[4:]  #fix
             # place the list of scores in the correct index
             else:
                 if full:
-                    score_dict[onindex].append(putat_score[3:])
+                    score_dict[onindex].append(putat_score[4:])
                 else:
-                    score_dict[onindex][int(putat_score[1][putat_score[1].find("trunc_") + 6:]) - 1] = putat_score[3:]
+                    score_dict[onindex][int(putat_score[2]) - 1] = putat_score[4:]
         elif not full:
             score_dict[onindex] = dict()
             score_dict[onindex] = [None] * 20
-            score_dict[onindex][int(putat_score[1][putat_score[1].find("trunc_") + 6:]) - 1] = putat_score[3:]
+            score_dict[onindex][int(putat_score[1]) - 1] = putat_score[4:]
 
 
 
@@ -180,7 +183,7 @@ class Analysis:
 
     def get_rosetta_scores(self):
         # iterate through all of the ensembles
-        for i in range(4,5):  # need to fix the other files so that the ensemble comes in correctly
+        for i in range(1,2):  # need to fix the other files so that the ensemble comes in correctly
             # Create an ensemble object to get the scores
             E = Ensemble(i,"5F9R")
             E.gather_scores()
@@ -234,7 +237,7 @@ class Analysis:
 
 
 
-A = Analysis("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/","5XUS")
+A = Analysis("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/","5F9R")
 for item in MasterEnvVariables.OFF_COMBOS_HSU_SPCAS9:
     myprintdict = A.trunc_information(1,"max","DNA",str(item), infotype2="ddG")
     for index in myprintdict:
