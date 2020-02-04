@@ -79,7 +79,7 @@ class Ensemble:
             # Check to see if the OFF ID has been initialized:
             if offindex not in score_dict[onindex]:
                 score_dict[onindex][offindex] = [None] * 20
-                print(putat_score[1], putat_score[2])
+                #print(putat_score[1], putat_score[2])
                 score_dict[onindex][offindex][int(putat_score[2]) - 1] = putat_score[4:]
             # place the list of scores in the correct index
             else:
@@ -100,7 +100,7 @@ class Ensemble:
             # Check to see if the OFF ID has been initialized:
             if onindex not in score_dict:
                 score_dict[onindex] = [None] * 20  # Not 20 cuz the last comes from the tot scores file
-                score_dict[onindex][int(putat_score[2])- 1] = putat_score[4:]  #fix
+                score_dict[onindex][int(putat_score[2])- 1] = putat_score[4:]
             # place the list of scores in the correct index
             else:
                 if full:
@@ -108,9 +108,8 @@ class Ensemble:
                 else:
                     score_dict[onindex][int(putat_score[2]) - 1] = putat_score[4:]
         elif not full:
-            score_dict[onindex] = dict()
             score_dict[onindex] = [None] * 20
-            score_dict[onindex][int(putat_score[1]) - 1] = putat_score[4:]
+            score_dict[onindex][int(putat_score[2]) - 1] = putat_score[4:]
 
 
 
@@ -193,6 +192,7 @@ class Analysis:
     def trunc_information(self,num_ensemble, infotype1, moltype, onindex, infotype2="ddG"):
         unaveraged_data = dict()  # Dictionary containing the return data (ddG, position) keyed by offindex
         score_set = self.Ensemble_data[num_ensemble -1].processed_truncation_scores(moltype, onindex, -1)  # -1 hard-coded for now to get the total
+        #print(score_set)
         for offindex in score_set[1]:
             if infotype1 == "max":
                 ddGmax = max(score_set[1][offindex])
@@ -208,7 +208,7 @@ class Analysis:
                     if abs(value) > 1.5:
                         zvector.append(value)
                         zvector.append(ddGZ.index(value))
-                print(zvector)
+                #print(zvector)
         return unaveraged_data
 
 
@@ -238,10 +238,13 @@ class Analysis:
 
 
 A = Analysis("/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/","5F9R")
-for item in MasterEnvVariables.OFF_COMBOS_HSU_SPCAS9:
-    myprintdict = A.trunc_information(1,"max","DNA",str(item), infotype2="ddG")
+ON_KEYS = ["201957", "202073", "202015", "201899"]
+for item in ON_KEYS:
+    myprintdict = A.trunc_information(1,"max","DNA", item, infotype2="ddG")
     for index in myprintdict:
-        print(index, myprintdict[index][0], myprintdict[index][1],
-              myprintdict[index][2], myprintdict[index][3], myprintdict[index][4], myprintdict[index][5], myprintdict[index][6])
+        outstring = index
+        for variable in myprintdict[index]:
+            outstring += "," + str(variable)
+        print(outstring)
 #A.align_scores_to_exp("max","DNA")
 
