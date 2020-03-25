@@ -86,7 +86,7 @@ class PDB:
             for i in range(len(truncs)):
                 file_string = ""
                 for chain in self.Chain:
-                    if chain == "A":
+                    if chain == trunkchain:
                         file_string += truncs[i]
                     elif chain == removechain:
                         poo = 1

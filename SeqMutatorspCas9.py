@@ -240,10 +240,10 @@ class SeqMutatorCas9:
                 f = open(self.base_dir + "OFF_TARGET/" + rnaid + "/" + rnaid + "-" + dnaid + ".pdb",'w')
                 f.write(target_pdb.return_chain("A"))
                 f.write(target_pdb.return_chain("B"))
-                with open(self.base_dir + "FULL_MUT_PDBs/tempChainC.pdb", 'r') as fd:
+                with open(self.base_dir + "ChainC_MUT/" + dnaid + ".pdb", 'r') as fd:
                     content = fd.read()
                     f.write(content)
-                with open(self.base_dir + "FULL_MUT_PDBs/tempChainD.pdb", 'r') as fd:
+                with open(self.base_dir + "ChainD_MUT/"+ dnaid + ".pdb", 'r') as fd:
                     content = fd.read()
                     f.write(content)
 
@@ -286,7 +286,7 @@ class SeqMutatorCas9:
         b = self.base_dir + "FULL_MUT_PDBs"
         # Iterate through full muts:
         for file in os.listdir(b):
-            if file.endswith("rel.pdb"):
+            if file.endswith("relmin.pdb"):
                 myp = PDB(b + "/", file)
                 myp.reassemble(file[:-7], 20, chain, trunc_dir=direction)
 
@@ -369,14 +369,16 @@ class SeqMutatorCas9:
 
 
 
-
-SMC9 = SeqMutatorCas9("spCas9","5","/home/trinhlab/Desktop/RosettaCRISPR/","5F9R")
-SMC9.collect_data(seqidflag="_2")  # step 1
-#SMC9.mutate_to_on_target() # step 2
-#SMC9.create_on_targets("relax.default.linuxgccrelease") # step 3a
-#SMC9.create_on_targets("minimize.default.linuxgccrelease") # step 3b
-#SMC9.off_target_structure_mutate() # step 4
-#SMC9.minimize_off_target() # step 5
-SMC9.generate_base_truncations("A", False) # step 6a
-#SMC12.generate_truncations("C", True)  # step 6b
-SMC9.score_truncations_base()  # step 7
+for i in range(1,6):
+    SMC9 = SeqMutatorCas9("spCas9",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5F9R")
+    SMC9.collect_data(seqidflag="_2")  # step 1
+    #SMC9.mutate_to_on_target() # step 2
+    #SMC9.create_on_targets("relax.default.linuxgccrelease") # step 3a
+    #SMC9.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+    #SMC9.off_target_structure_mutate() # step 4
+    #SMC9.minimize_off_target() # step 5
+    SMC9.generate_base_truncations("C", False) # step 6a
+    #SMC9.generate_truncations("A", False)
+    #SMC9.generate_truncations("C", False)  # step 6b
+    SMC9.score_truncations_base()  # step 7a
+    #SMC9.score_truncations() # step 7b

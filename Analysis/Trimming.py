@@ -10,11 +10,14 @@ import MasterEnvVariables
 from Analysis.DataImport import PoseData
 
 
-def write_data(myfile, mutdir):
+def write_data(myfile, mutdir, off=False):
     retstr = str()
     rid = str(myfile).find("r")
     did = str(myfile).find("d")
-    outid = myfile[rid+2:rid+8] + ", " + myfile[did+2:did+8]
+    if off:  # getting rid of on target contaminants in off-target file
+        if rid == did:
+            return ""
+    outid = myfile[rid+2:rid+8] + ", " + myfile[did+2:did+8] + ", " + myfile[myfile.find("trunc_")+6:myfile.find("_scr")]
     P = PoseData(mutdir + myfile)
     outstr = outid + ", DNA, " + str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
     retstr += outstr
@@ -23,9 +26,9 @@ def write_data(myfile, mutdir):
     return retstr
 
 # Iterate over all the off-target directories in the ensemble off target directory:
-def trim_total_scores(Structure, offbasegroup, ensemble_num):
-    directory = "/Users/brianmendoza/Desktop/RosettaCRISPR/" + Structure + "/Ensemble_" + str(ensemble_num)
-    output_base = "/Users/brianmendoza/Dropbox/RosettaCRISPRTrimmed/" + Structure + "Ensemble_" + str(ensemble_num)
+def trim_total_scores(Structure, ensemble_num):
+    directory = "/home/trinhlab/Desktop/RosettaCRISPR/" + Structure + "/Ensemble_" + str(ensemble_num)
+    output_base = "/home/trinhlab/Desktop/RosettaCRISPRTrimmed/" + Structure + "Ensemble_" + str(ensemble_num)
     outputfile1 = output_base + "TrimmedTotalScores.txt"
     outputfile2 = output_base + "TrimmedTruncationScores.txt"
     outputfile3 = output_base + "TrimmedBaseTotalScores.txt"
@@ -35,13 +38,13 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
     f = open(outputfile3, 'w')
     fullmutdir = directory + "/FULL_MUT_PDBs/"
     for file in os.listdir(fullmutdir):
-        if file.endswith("relmin_0001.pdb"):
+        if file.endswith("rel_min.pdb"):
             print(file)
             did = str(file).find("d")
             rid = str(file).find("r")
             dnaid = str(file)[did+2:did+8]
             rnaid = str(file)[rid+2:rid+8]
-            outid = dnaid + ", " + rnaid
+            outid = rnaid + ", " + dnaid
             print(outid)
             P = PoseData(fullmutdir + file)
             outstr = outid + ", DNA, " + str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
@@ -53,6 +56,7 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
     truncmutdir = fullmutdir + "truncs_from_min/"
     for myfile in os.listdir(truncmutdir):
         if myfile.endswith("scr.pdb"):
+            print(myfile)
             f.write(write_data(myfile, truncmutdir))
     f.close()
 
@@ -68,13 +72,14 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
                     rid = str(file).find("r")
                     dnaid = str(file)[did + 2:did + 8]
                     rnaid = str(file)[rid + 2:rid + 8]
-                    outid = dnaid + ", " + rnaid
-                    print(outid)
-                    P = PoseData(fullmutdir + directory + "/" + file)
-                    outstr = outid + ", DNA, " + str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
-                    f.write(outstr)
-                    outstr = outid + ", RNA, " + str(P.return_cum_pose_values("RNA"))[1:-1] + "\n"
-                    f.write(outstr)
+                    if dnaid != rnaid:  # ignores some input contamination that recreates the on target
+                        outid = rnaid + ", " + dnaid
+                        print(outid)
+                        P = PoseData(fullmutdir + directory + "/" + file)
+                        outstr = outid + ", DNA, " + str(P.return_cum_pose_values("DNA"))[1:-1] + "\n"
+                        f.write(outstr)
+                        outstr = outid + ", RNA, " + str(P.return_cum_pose_values("RNA"))[1:-1] + "\n"
+                        f.write(outstr)
     f.close()
     f = open(outputfile2, 'w')
     for directory in os.listdir(fullmutdir):
@@ -82,9 +87,10 @@ def trim_total_scores(Structure, offbasegroup, ensemble_num):
             truncmutdir = fullmutdir + directory + "/truncs_from_min/"
             # check to make sure there even exists any off targets:
             if os.path.isdir(truncmutdir):
+                print(directory)
                 for myfile in os.listdir(truncmutdir):
                     if myfile.endswith("scr.pdb"):
-                        f.write(write_data(myfile, truncmutdir))
+                        f.write(write_data(myfile, truncmutdir,off=True))
     f.close()
 
 def fix_4un4_trim():
@@ -100,8 +106,7 @@ def fix_4un4_trim():
             f.close()
 
 
-structure = "5F9R"
-offbaselist = MasterEnvVariables.OFFBASES["spCas9"]
-mylist = [1]  # The ensembles that you want to investigate
+structure = "5XUS"
+mylist = [1,2,3,4,5]  # The ensembles that you want to investigate
 for i in mylist:
-    trim_total_scores(structure, offbaselist, i)
+    trim_total_scores(structure, i)

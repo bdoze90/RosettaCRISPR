@@ -160,16 +160,16 @@ class SeqMutatorCas12:
             if target.endswith(".pdb"):
                 # Check for the minimization successive function:
                 if process.startswith("minimize"):
-                    runlist.append(target)  # for the minimize only variation
-                    #if target.endswith("rel.pdb"):
-                        #runlist.append(target)
+                    #runlist.append(target)  # for the minimize only variation
+                    if target.endswith("rel.pdb"):
+                        runlist.append(target)
                 else:
                     runlist.append(target)
         rsub = RosettaSubprocess(process, 16, runlist)
         if process.startswith("relax"):
             rsub.set_inputs(["-s", 'filler', "-nstruct", "1", "-relax:default_repeats", "5", "-out:suffix", "_rel"])
         else:
-            rsub.set_inputs(["-s", 'filler', "-out:suffix", "_min", "-run:min_tolerance", "0.0001"])
+            rsub.set_inputs(["-s", 'filler', "-out:suffix", "min", "-run:min_tolerance", "0.0001"])
         rsub.run_batch()
         # remove the numbering:
         for target in os.listdir(os.curdir):
@@ -191,8 +191,8 @@ class SeqMutatorCas12:
             for item in self.on_target_combos:
                 if item[0] == rnaid:
                     cordna = item[1]
-            #targetfile = rnaid + "-" + cordna + "_rel.pdb"
-            targetfile = rnaid + "-" + cordna + "_min.pdb"
+            targetfile = rnaid + "-" + cordna + "_rel.pdb"
+            #targetfile = rnaid + "-" + cordna + "_min.pdb"
             target_pdb = PDB(self.base_dir + "FULL_MUT_PDBs/", targetfile)
             DNAchain = open(self.base_dir + "FULL_MUT_PDBs/" + "tempChainC.pdb", "w")
             DNAchain.write(target_pdb.return_chain("C"))
@@ -223,7 +223,7 @@ class SeqMutatorCas12:
                 f = open(self.base_dir + "OFF_TARGET/" + rnaid + "/" + rnaid + "-" + dnaid + ".pdb",'w')
                 f.write(target_pdb.return_chain("A"))
                 f.write(target_pdb.return_chain("B"))
-                with open(self.base_dir + "FULL_MUT_PDBs/tempChainC.pdb", 'r') as fd:
+                with open(self.base_dir + "ChainC_MUT/" + dnaid + ".pdb", 'r') as fd:
                     content = fd.read()
                     f.write(content)
                 f.write(target_pdb.return_chain("D"))
@@ -268,7 +268,7 @@ class SeqMutatorCas12:
         b = self.base_dir + "FULL_MUT_PDBs"
         # Iterate through full muts:
         for file in os.listdir(b):
-            if file.endswith("rel.pdb"):
+            if file.endswith("relmin.pdb"):
                 myp = PDB(b + "/", file)
                 myp.reassemble(file[:-7], 23, chain, trunc_dir=direction)
 
@@ -351,14 +351,19 @@ class SeqMutatorCas12:
 
 
 
+for i in range(3,6):
+    SMC12 = SeqMutatorCas12("lbCas12",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5XUT")
+    SMC12.collect_data()  # step 1
+    SMC12.mutate_to_on_target() # step 2
+    SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
+    SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+    SMC12.off_target_structure_mutate() # step 4
+    SMC12.minimize_off_target() # step 5
+    SMC12.generate_truncations("C", True) # step 6a
+    SMC12.generate_base_truncations("C", True) # step 6c
+    #SMC12.generate_truncations("C", True)  # step 6b
+    SMC12.score_truncations() # step 7a
+    SMC12.score_truncations_base()  # step 7b
 
-SMC12 = SeqMutatorCas12("lbCas12","4","/home/trinhlab/Desktop/RosettaCRISPR/","5XUT")
-SMC12.collect_data()  # step 1
-#SMC12.mutate_to_on_target() # step 2
-#SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
-#SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
-#SMC12.off_target_structure_mutate() # step 4
-#SMC12.minimize_off_target() # step 5
-SMC12.generate_truncations("B", False) # step 6a
-#SMC12.generate_truncations("C", True)  # step 6b
-SMC12.score_truncations_base()  # step 7
+#NEED TO REDO FOR 3,4,5 BECAUSE THEY ARE MIN ONLY
+#NEED TO REDO 1 FROM SCORE_TRUNCATIONS ON, BECAUSE FAIL THERE
