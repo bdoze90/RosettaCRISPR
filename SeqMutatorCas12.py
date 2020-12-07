@@ -37,14 +37,14 @@ class SeqMutatorCas12:
                                  "ChainC": ('d', 4, 'n', 'rc', 'TAGAGGACG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CGTCCTCTA')},
 
-                        "5XH6": {"ChainB": ('r', 0, 'n', '', ''),  # AsCas12
+                        "5XH6": {"ChainB": ('r', 0, -3, '', ''),  # AsCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 4, 'n', 'rc', 'TATAGGACTG'),
+                                 "ChainC": ('d', 3, 'n', 'rc', 'TATAGGACTG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CAGTCCTATA')},
 
-                        "5XH7": {"ChainB": ('r', 0, 'n', '', ''),  # AsCas12
+                        "5XH7": {"ChainB": ('r', 0, -3, '', ''),  # AsCas12
                                  "ChainA": ('protein', 'n', 'n', 'n', 'n'),
-                                 "ChainC": ('d', 4, 'n', 'rc', 'TGGAGGACTG'),
+                                 "ChainC": ('d', 3, 'n', 'rc', 'TGGAGGACTG'),
                                  "ChainD": ('d', 'n', 'n', '', 'CAGTCCTCCA')}
                         }
 
@@ -64,6 +64,7 @@ class SeqMutatorCas12:
         z = open("/home/trinhlab/Desktop/RosettaCRISPR/combo_seqs_" + self.CasID + ".txt")
         for line in z:
             linelist = line[:-1].split("\t")
+            print(linelist)
             if linelist[0] == "ON":
                 self.on_target_combos.append((linelist[1],linelist[2]))
             else:
@@ -103,7 +104,7 @@ class SeqMutatorCas12:
 
         # Mutate all the RNA sequences in the on-target-combos:
         for ids in self.on_target_combos:
-            rnumid = int(ids[0][2:]) - 100001
+            rnumid = int(ids[0][2:]) - 101001
             specs = self.cs_dict[self.structure]["ChainB"]
             if specs[2] == 'n':
                 mysequence = self.rna_seqs[rnumid][specs[1]:] + specs[4]
@@ -122,15 +123,16 @@ class SeqMutatorCas12:
 
         # Mutate the DNA sequences in the on-target-combos:
         for ids in self.on_target_combos:
-            dnumid = int(ids[1][2:]) - 100001
+            dnumid = int(ids[1][2:]) - 101001
             specs = self.cs_dict[self.structure]["ChainC"]
             if specs[2] == 'n':
-                mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
+                mysequence = self.dna_seqs[dnumid][specs[1]:]
             else:
-                mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
+                mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]]
             # check to see if you need to run the sequence through revcom algorithm:
             if specs[3] == 'rc':
                 mysequence = self.revcom(mysequence)
+            mysequence += specs[4]
             rr.set_inputs(
                 ["-s", self.base_dir + "ChainC.pdb", "-seq", mysequence.lower(), "-o",
                  self.base_dir + "ChainC_MUT/" + ids[1] + ".pdb"])
@@ -182,8 +184,8 @@ class SeqMutatorCas12:
     def off_target_structure_mutate(self):
         # Create the directories for storing the mutated files
         for i in range(len(self.rna_seqs)):
-            if not os.path.isdir(self.base_dir + "OFF_TARGET/r_" + str(100001 + i)):
-                os.mkdir(self.base_dir + "OFF_TARGET/r_" + str(100001 + i))
+            if not os.path.isdir(self.base_dir + "OFF_TARGET/r_" + str(101001 + i)):
+                os.mkdir(self.base_dir + "OFF_TARGET/r_" + str(101001 + i))
         # Obtain the sequence from ChainC (The DNA that needs to be changed) for the mutation
         for rnaid in self.combinations:
             # search for the corresponding DNAid:
@@ -203,9 +205,10 @@ class SeqMutatorCas12:
 
             # Mutate the DNA to the respective off target sequences:
             for dnaid in self.combinations[rnaid]:
-                dnumid = int(dnaid[2:]) - 100001
+                dnumid = int(dnaid[2:]) - 101001
                 specs = self.cs_dict[self.structure]["ChainC"]
                 if specs[2] == 'n':
+                    print(dnumid,specs[1])
                     mysequence = self.dna_seqs[dnumid][specs[1]:] + specs[4]
                 else:
                     mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
@@ -351,8 +354,8 @@ class SeqMutatorCas12:
 
 
 
-for i in range(3,6):
-    SMC12 = SeqMutatorCas12("lbCas12",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5XUT")
+for i in range(1,6):
+    SMC12 = SeqMutatorCas12("asCas12_2",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5XH7")
     SMC12.collect_data()  # step 1
     SMC12.mutate_to_on_target() # step 2
     SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
@@ -364,6 +367,19 @@ for i in range(3,6):
     #SMC12.generate_truncations("C", True)  # step 6b
     SMC12.score_truncations() # step 7a
     SMC12.score_truncations_base()  # step 7b
+"""for i in range(2,6):
+    SMC12 = SeqMutatorCas12("asCas12_2",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5XH6")
+    SMC12.collect_data()  # step 1
+    SMC12.mutate_to_on_target() # step 2
+    SMC12.create_on_targets("relax.default.linuxgccrelease") # step 3a
+    SMC12.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+    #SMC12.off_target_structure_mutate() # step 4
+    #SMC12.minimize_off_target() # step 5
+    #SMC12.generate_truncations("C", True) # step 6a
+    #SMC12.generate_base_truncations("C", True) # step 6c
+    #SMC12.generate_truncations("C", True)  # step 6b
+    #SMC12.score_truncations() # step 7a
+    #SMC12.score_truncations_base()  # step 7b"""
 
 #NEED TO REDO FOR 3,4,5 BECAUSE THEY ARE MIN ONLY
 #NEED TO REDO 1 FROM SCORE_TRUNCATIONS ON, BECAUSE FAIL THERE

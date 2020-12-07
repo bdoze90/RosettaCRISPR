@@ -38,7 +38,7 @@ def trim_total_scores(Structure, ensemble_num):
     f = open(outputfile3, 'w')
     fullmutdir = directory + "/FULL_MUT_PDBs/"
     for file in os.listdir(fullmutdir):
-        if file.endswith("rel_min.pdb"):
+        if file.endswith("relmin.pdb"):
             print(file)
             did = str(file).find("d")
             rid = str(file).find("r")
@@ -106,7 +106,7 @@ def fix_4un4_trim():
             f.close()
 
 
-structure = "5XUS"
+structure = "5XH7"
 mylist = [1,2,3,4,5]  # The ensembles that you want to investigate
 for i in mylist:
     trim_total_scores(structure, i)

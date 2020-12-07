@@ -6,7 +6,7 @@ import subprocess, os, time
 class RosettaSubprocess:
 
     def __init__(self, program, max_p, process_list):
-        self.rosetta_directory = "/home/trinhlab/Documents/rosetta_bin_linux_2018.12.60119_bundle/main/source/bin/"
+        self.rosetta_directory = "/home/trinhlab/rosetta_src_2019.35.60890_bundle/main/source/bin/"
         self.program = program
         self.inputs = list()
 
@@ -52,7 +52,7 @@ class RosettaSubprocess:
 class RosettaSingleProcess:
 
     def __init__(self, program):
-        self.rosetta_directory = "/home/trinhlab/Documents/rosetta_bin_linux_2018.12.60119_bundle/main/source/bin/"
+        self.rosetta_directory = "/home/trinhlab/rosetta_src_2019.35.60890_bundle/main/source/bin/"
         self.program = program
         self.inputs = list()
 

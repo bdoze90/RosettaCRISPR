@@ -17,8 +17,8 @@ class SeqMutatorCas9:
         self.base_dir = base_dir + structure + "/Ensemble_" + str(num_ensemble) + "/"
         self.structure = structure
 
-        self.rna_seqs = list()  # in order list of sequences from 1 to n
-        self.dna_seqs = list()
+        self.rna_seqs = [None]*10000  # in order list of sequences from 1 to n
+        self.dna_seqs = [None]*10000
         self.combinations = dict()  # relational database with keys as rna sequences and values as dna sequences
         self.on_target_combos = list()  # list of tuples containing the rna and dna combinations that comprise the on-target seqs
         # List of all the appropriate indexes for the mutated sequences and crystal structures
@@ -39,12 +39,14 @@ class SeqMutatorCas9:
         # Get the rna sequences
         f = open("/home/trinhlab/Desktop/RosettaCRISPR/rna_seqs_" + self.CasID + seqidflag + ".txt")
         for line in f:
-            self.rna_seqs.append(line[:-1].split("\t")[1])
+            linelist = line[:-1].split("\t")
+            self.rna_seqs[int(linelist[0][2:])-200001] = linelist[1]
         f.close()
         # Get the dna sequences
         y = open("/home/trinhlab/Desktop/RosettaCRISPR/dna_seqs_" + self.CasID + seqidflag + ".txt")
         for line in y:
-            self.dna_seqs.append(line[:-1].split("\t")[1])
+            linelist = line[:-1].split("\t")
+            self.dna_seqs[int(linelist[0][2:])-200001] = linelist[1]
         y.close()
         # Get the combinations
         z = open("/home/trinhlab/Desktop/RosettaCRISPR/combo_seqs_" + self.CasID + seqidflag + ".txt")
@@ -210,6 +212,7 @@ class SeqMutatorCas9:
                     mysequence = self.dna_seqs[dnumid][specs[1]:specs[2]] + specs[4]
                 # check to see if you need to run the sequence through revcom algorithm:
                 if specs[3] == 'rc':
+                    print(mysequence)
                     mysequence = self.revcom(mysequence)
                 rr.set_inputs(
                     ["-s", self.base_dir + "FULL_MUT_PDBs/tempChainC.pdb", "-seq", mysequence.lower(), "-o",
@@ -369,16 +372,16 @@ class SeqMutatorCas9:
 
 
 
-for i in range(1,6):
+for i in range(2,6):
     SMC9 = SeqMutatorCas9("spCas9",str(i),"/home/trinhlab/Desktop/RosettaCRISPR/","5F9R")
-    SMC9.collect_data(seqidflag="_2")  # step 1
-    #SMC9.mutate_to_on_target() # step 2
-    #SMC9.create_on_targets("relax.default.linuxgccrelease") # step 3a
-    #SMC9.create_on_targets("minimize.default.linuxgccrelease") # step 3b
-    #SMC9.off_target_structure_mutate() # step 4
-    #SMC9.minimize_off_target() # step 5
+    SMC9.collect_data(seqidflag="_3")  # step 1
+    SMC9.mutate_to_on_target() # step 2
+    SMC9.create_on_targets("relax.default.linuxgccrelease") # step 3a
+    SMC9.create_on_targets("minimize.default.linuxgccrelease") # step 3b
+    SMC9.off_target_structure_mutate() # step 4
+    SMC9.minimize_off_target() # step 5
     SMC9.generate_base_truncations("C", False) # step 6a
-    #SMC9.generate_truncations("A", False)
-    #SMC9.generate_truncations("C", False)  # step 6b
+    SMC9.generate_truncations("A", False)
+    SMC9.generate_truncations("C", False)  # step 6b
     SMC9.score_truncations_base()  # step 7a
-    #SMC9.score_truncations() # step 7b
+    SMC9.score_truncations() # step 7b
